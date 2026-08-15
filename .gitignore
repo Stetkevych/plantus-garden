@@ -1,0 +1,27 @@
+# dependencies (none today, but keep the door shut)
+node_modules/
+package-lock.json
+
+# build / packaging output
+dist/
+*.zip
+*.bundle
+
+# local env + AWS
+.env
+.env.*
+.aws-sam/
+samconfig.toml
+
+# editors
+.vscode/
+.idea/
+*.swp
+
+# os cruft
+.DS_Store
+Thumbs.db
+
+# logs
+*.log
+npm-debug.log*
