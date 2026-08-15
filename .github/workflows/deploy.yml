@@ -1,0 +1,49 @@
+name: deploy
+
+# Deploys only when the repository has the AWS variables configured, so a fresh
+# fork never tries to deploy and fail.
+#
+# Repository settings -> Secrets and variables -> Actions
+#   Variables: AWS_REGION, S3_BUCKET, CLOUDFRONT_DISTRIBUTION_ID
+#   Secrets:   AWS_ROLE_ARN   (an IAM role trusting GitHub's OIDC provider)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  id-token: write   # required for OIDC
+  contents: read
+
+jobs:
+  deploy:
+    if: vars.S3_BUCKET != ''
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Do not ship a broken build
+        run: node test/smoke.mjs
+
+      - name: Assume the deploy role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Push to S3 and invalidate CloudFront
+        run: |
+          chmod +x deploy/deploy-s3.sh
+          ./deploy/deploy-s3.sh "${{ vars.S3_BUCKET }}" "${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}"
+        env:
+          AWS_REGION: ${{ vars.AWS_REGION }}

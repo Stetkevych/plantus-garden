@@ -1,0 +1,38 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    name: crash harness
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Run every game headlessly with random input
+        run: node test/smoke.mjs
+
+  balance:
+    name: difficulty and payout harness
+    runs-on: ubuntu-latest
+    # Bot play is slow — it is the check that actually catches unplayable tuning,
+    # so give it room rather than trimming the run count.
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Drive every game with a competent bot
+        run: node test/balance.mjs | tee balance-report.txt
+      - name: Publish the report
+        uses: actions/upload-artifact@v4
+        with:
+          name: balance-report
+          path: balance-report.txt
