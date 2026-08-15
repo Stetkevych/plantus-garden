@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<meta name="theme-color" content="#12211A" />
+<title>Plantus Garden — grow it, then play for it</title>
+<meta name="description" content="Five botanical mini-games feed one garden. Win sun tokens, spend them on growth, earn plantus." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Karla:wght@400;500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<header class="topbar">
+  <button class="brand" id="homeBtn" aria-label="Back to the garden">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span class="brand-name">Plantus<em>Garden</em></span>
+  </button>
+  <div class="wallet">
+    <div class="token token--sun" title="Sun tokens — won in mini-games, spent on growth">
+      <span class="token-icon" aria-hidden="true">☀</span>
+      <span id="sunCount">0</span>
+      <span class="token-label">sun</span>
+    </div>
+    <div class="token token--plantus" title="Plantus tokens — minted only by healthy growth">
+      <span class="token-icon" aria-hidden="true">✿</span>
+      <span id="plantusCount">0</span>
+      <span class="token-label">plantus</span>
+    </div>
+  </div>
+</header>
+
+<!-- ================= GARDEN HUB ================= -->
+<main id="hub" class="view">
+
+  <section class="bed">
+    <div class="bed-head">
+      <p class="eyebrow">Your garden</p>
+      <h1>Play to earn sun. Spend sun to grow. Growth pays plantus.</h1>
+    </div>
+    <canvas id="gardenCanvas" width="960" height="380" aria-label="Your garden beds"></canvas>
+    <p class="bed-hint" id="bedHint">Tap a plot to tend it</p>
+  </section>
+
+  <section class="plot-panel" id="plotPanel" hidden>
+    <div class="plot-panel-top">
+      <div>
+        <h2 id="plotName">Sunflower</h2>
+        <p class="latin" id="plotLatin">Helianthus annuus</p>
+      </div>
+      <div class="stage-pill" id="plotStage">Seedling</div>
+    </div>
+    <div class="stage-track" id="stageTrack" aria-hidden="true"></div>
+    <p class="plot-caption" id="plotCaption"></p>
+    <p class="plot-trait" id="plotTrait"></p>
+    <div class="plot-actions">
+      <button class="btn btn--grow" id="growBtn">Grow</button>
+      <button class="btn btn--ghost" id="closePlot">Close</button>
+    </div>
+  </section>
+
+  <section class="games">
+    <div class="section-head">
+      <p class="eyebrow">Mini-games</p>
+      <h2>Five ways to earn sun</h2>
+    </div>
+    <div class="game-grid" id="gameGrid"></div>
+  </section>
+
+  <section class="guide">
+    <div class="section-head">
+      <p class="eyebrow">Field guide</p>
+      <h2><span id="factCount">1</span> of <span id="factTotal">16</span> entries collected</h2>
+    </div>
+    <div class="fact-grid" id="factGrid"></div>
+  </section>
+
+  <footer class="foot">
+    <span id="statLine"></span>
+    <button class="link-btn" id="resetBtn">Clear save</button>
+  </footer>
+</main>
+
+<!-- ================= PLAY ================= -->
+<section id="play" class="view" hidden>
+  <div class="play-head">
+    <button class="btn btn--ghost btn--sm" id="quitBtn">Leave run</button>
+    <span class="play-title" id="playTitle"></span>
+    <span class="play-hint" id="playHint"></span>
+  </div>
+  <div class="stage-wrap">
+    <canvas id="gameCanvas" width="480" height="720"></canvas>
+  </div>
+</section>
+
+<!-- ================= OVERLAYS ================= -->
+<div class="overlay" id="overlay" hidden>
+  <div class="sheet" id="sheet"></div>
+</div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
