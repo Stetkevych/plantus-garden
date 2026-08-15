@@ -1784,7 +1784,7 @@ const TOP = 62;
 const GARDEN_Y = 470;     // clouds must never reach this line
 const SOIL_Y = 612;
 const LAUNCH = { x: VW / 2, y: 668 };
-const SHOTS = 30;
+const SHOTS = 26;
 
 const TYPES = {
   cumulus: { color: '#9FD8EE', water: 1, name: 'Cumulus' },
@@ -2017,7 +2017,7 @@ function createCloudBarrage() {
     g.grid.forEach((row) => row.forEach((cl) => { if (cl && cl.frozen > 0) cl.frozen -= 1; }));
 
     g.sinceDrop += 1;
-    if (g.sinceDrop >= 6) { g.sinceDrop = 0; descend(); }
+    if (g.sinceDrop >= 5) { g.sinceDrop = 0; descend(); }
 
     for (let r2 = 0; r2 < g.grid.length; r2++) {
       for (let c2 = 0; c2 < colsIn(r2); c2++) {
