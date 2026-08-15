@@ -1,0 +1,3967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<meta name="theme-color" content="#12211A" />
+<title>Plantus Garden</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Karla:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --ink:#12211A;
+  --ink-2:#1B3026;
+  --ink-3:#22392C;
+  --moss:#2C4A3A;
+  --chloro:#8BE06A;
+  --chloro-dk:#5FB544;
+  --pollen:#FFC93C;
+  --petal:#FF7EA8;
+  --rain:#63C7F0;
+  --paper:#EAF2E2;
+  --bark:#B98453;
+  --danger:#E2564A;
+  --muted:rgba(234,242,226,.58);
+  --line:rgba(139,224,106,.16);
+  --display:"Baloo 2",system-ui,sans-serif;
+  --body:"Karla",system-ui,sans-serif;
+  --r:16px;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:
+    radial-gradient(1100px 620px at 50% -10%, #23402F 0%, transparent 60%),
+    var(--ink);
+  color:var(--paper);
+  font-family:var(--body);
+  -webkit-font-smoothing:antialiased;
+  min-height:100dvh;
+  overflow-x:hidden;
+}
+h1,h2,h3{font-family:var(--display);margin:0;line-height:1.12;font-weight:700}
+button{font-family:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--pollen);outline-offset:3px;border-radius:8px}
+
+/* ---------- top bar ---------- */
+.topbar{
+  position:sticky;top:0;z-index:40;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:12px clamp(14px,4vw,32px);
+  background:rgba(18,33,26,.86);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);
+}
+.brand{display:flex;align-items:center;gap:10px;background:none;border:0;padding:0;color:inherit}
+.brand-mark{
+  width:26px;height:26px;border-radius:50% 50% 50% 4px;
+  background:linear-gradient(140deg,var(--chloro),var(--chloro-dk));
+  transform:rotate(-12deg);flex:none;
+}
+.brand-name{font-family:var(--display);font-size:19px;font-weight:800;letter-spacing:-.2px}
+.brand-name em{font-style:normal;color:var(--chloro);font-weight:600}
+.wallet{display:flex;gap:8px}
+.token{
+  display:flex;align-items:baseline;gap:6px;
+  padding:6px 12px;border-radius:999px;
+  background:var(--ink-2);border:1px solid var(--line);
+  font-family:var(--display);font-weight:700;font-size:16px;
+  transition:transform .18s ease, box-shadow .18s ease;
+}
+.token--sun{color:var(--pollen)}
+.token--plantus{color:var(--petal)}
+.token-icon{font-size:13px}
+.token-label{font-family:var(--body);font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.token.bump{transform:scale(1.12);box-shadow:0 0 0 4px rgba(255,201,60,.16)}
+
+/* ---------- layout ---------- */
+.view{max-width:1020px;margin:0 auto;padding:0 clamp(14px,4vw,32px) 64px}
+.eyebrow{
+  font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--chloro);margin:0 0 8px;
+}
+.section-head{margin:38px 0 16px}
+.section-head h2{font-size:clamp(20px,3.4vw,26px)}
+
+/* ---------- garden bed ---------- */
+.bed{padding-top:26px}
+.bed-head h1{font-size:clamp(23px,4.6vw,36px);max-width:16ch;letter-spacing:-.4px}
+.bed canvas{
+  display:block;width:100%;height:auto;margin-top:18px;
+  border-radius:var(--r);
+  border:1px solid var(--line);
+  background:linear-gradient(180deg,#1E3A2C 0%,#16281F 62%,#33241A 62%,#2A1D14 100%);
+  cursor:pointer;touch-action:manipulation;
+}
+.bed-hint{
+  margin:10px 0 0;font-size:12px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--muted);font-weight:700;
+}
+
+/* ---------- plot panel ---------- */
+.plot-panel{
+  margin-top:16px;padding:18px;
+  background:var(--ink-2);border:1px solid var(--line);border-radius:var(--r);
+  animation:rise .22s ease both;
+}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.plot-panel-top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}
+.plot-panel-top h2{font-size:23px}
+.latin{margin:2px 0 0;font-size:12px;font-style:italic;color:var(--muted)}
+.stage-pill{
+  flex:none;padding:6px 13px;border-radius:999px;
+  background:rgba(139,224,106,.14);border:1px solid var(--line);
+  color:var(--chloro);font-family:var(--display);font-weight:700;font-size:13px;
+}
+.stage-track{display:flex;gap:5px;margin:16px 0 12px}
+.stage-track span{
+  flex:1;height:7px;border-radius:4px;background:rgba(234,242,226,.10);
+  transition:background .3s ease;
+}
+.stage-track span.on{background:var(--chloro)}
+.stage-track span.now{background:var(--pollen);box-shadow:0 0 12px rgba(255,201,60,.5)}
+.plot-caption{margin:0 0 6px;font-size:14.5px;line-height:1.55}
+.plot-trait{margin:0 0 16px;font-size:13px;line-height:1.5;color:var(--muted)}
+.plot-actions{display:flex;gap:10px;flex-wrap:wrap}
+
+/* ---------- buttons ---------- */
+.btn{
+  border:0;border-radius:12px;padding:13px 22px;
+  font-family:var(--display);font-weight:700;font-size:16px;
+  background:var(--chloro);color:var(--ink);
+  transition:transform .12s ease,filter .18s ease;
+}
+.btn:hover{filter:brightness(1.08)}
+.btn:active{transform:translateY(1px)}
+.btn[disabled]{opacity:.42;cursor:not-allowed;filter:none}
+.btn--ghost{background:transparent;color:var(--paper);border:1px solid var(--line)}
+.btn--sm{padding:8px 14px;font-size:14px}
+.btn--grow{background:linear-gradient(135deg,var(--chloro),var(--chloro-dk))}
+.btn--full{width:100%}
+.link-btn{background:none;border:0;color:var(--muted);font-size:12px;text-decoration:underline;padding:4px}
+
+/* ---------- game grid ---------- */
+.game-grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(228px,1fr))}
+.game-card{
+  position:relative;text-align:left;overflow:hidden;
+  padding:18px;border-radius:var(--r);
+  background:var(--ink-2);border:1px solid var(--line);color:var(--paper);
+  transition:transform .18s ease,border-color .18s ease;
+}
+.game-card:hover{transform:translateY(-3px);border-color:var(--chloro)}
+.game-card h3{font-size:20px;margin-bottom:2px}
+.game-card .tag{
+  font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--chloro);
+}
+.game-card .verb{margin:8px 0 0;font-size:13.5px;color:var(--muted);line-height:1.45}
+.game-card .best{
+  margin-top:14px;font-family:var(--display);font-size:13px;font-weight:700;color:var(--pollen);
+}
+.game-card .glyph{
+  position:absolute;right:-10px;bottom:-16px;font-size:74px;line-height:1;
+  opacity:.10;pointer-events:none;
+}
+
+/* ---------- field guide ---------- */
+.fact-grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(228px,1fr))}
+.fact{
+  padding:15px;border-radius:13px;
+  background:var(--ink-2);border:1px solid var(--line);
+}
+.fact.locked{opacity:.36;border-style:dashed}
+.fact .tag{
+  display:inline-block;margin-bottom:7px;padding:3px 9px;border-radius:999px;
+  background:rgba(99,199,240,.14);color:var(--rain);
+  font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+}
+.fact h4{margin:0 0 6px;font-family:var(--display);font-size:16.5px;font-weight:700}
+.fact p{margin:0;font-size:13px;line-height:1.55;color:var(--muted)}
+
+.foot{
+  display:flex;justify-content:space-between;align-items:center;gap:12px;
+  margin-top:42px;padding-top:18px;border-top:1px solid var(--line);
+  font-size:12px;color:var(--muted);flex-wrap:wrap;
+}
+
+/* ---------- play view ---------- */
+#play{display:flex;flex-direction:column;align-items:center;padding-bottom:24px}
+.play-head{
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  width:100%;max-width:480px;padding:14px 0;
+}
+.play-title{font-family:var(--display);font-weight:700;font-size:17px}
+.play-hint{margin-left:auto;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.stage-wrap{
+  width:min(480px,100%);
+  border-radius:var(--r);overflow:hidden;
+  border:1px solid var(--line);
+  box-shadow:0 22px 60px rgba(0,0,0,.45);
+}
+#gameCanvas{display:block;width:100%;height:auto;background:var(--ink-2);touch-action:none}
+
+/* ---------- overlay sheets ---------- */
+.overlay{
+  position:fixed;inset:0;z-index:60;
+  display:grid;place-items:center;padding:18px;
+  background:rgba(8,16,12,.82);backdrop-filter:blur(6px);
+}
+.sheet{
+  width:min(440px,100%);max-height:88dvh;overflow-y:auto;
+  padding:26px;border-radius:22px;
+  background:var(--ink-2);border:1px solid var(--line);
+  box-shadow:0 30px 80px rgba(0,0,0,.6);
+  animation:rise .25s ease both;
+}
+.sheet h2{font-size:27px;margin-bottom:4px}
+.sheet .reason{margin:0 0 20px;font-size:14px;color:var(--muted);line-height:1.5}
+.score-row{display:flex;align-items:baseline;gap:10px;margin-bottom:18px}
+.score-row .big{font-family:var(--display);font-size:46px;font-weight:800;line-height:1}
+.score-row .earn{
+  padding:6px 13px;border-radius:999px;background:rgba(255,201,60,.16);
+  color:var(--pollen);font-family:var(--display);font-weight:700;font-size:15px;
+}
+.stat-list{list-style:none;margin:0 0 20px;padding:0;display:grid;gap:8px}
+.stat-list li{
+  display:flex;justify-content:space-between;gap:14px;
+  padding:9px 13px;border-radius:10px;background:rgba(234,242,226,.05);
+  font-size:13.5px;
+}
+.stat-list b{font-family:var(--display);color:var(--chloro);font-weight:700}
+.lesson{
+  padding:14px;border-radius:12px;margin-bottom:18px;
+  background:rgba(99,199,240,.10);border-left:3px solid var(--rain);
+  font-size:13.5px;line-height:1.55;
+}
+.lesson strong{display:block;font-family:var(--display);color:var(--rain);margin-bottom:4px;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.quiz{margin-bottom:18px}
+.quiz p{margin:0 0 12px;font-size:15px;line-height:1.45;font-weight:500}
+.quiz-opts{display:grid;gap:8px}
+.quiz-opt{
+  text-align:left;padding:12px 14px;border-radius:11px;
+  background:rgba(234,242,226,.05);border:1px solid var(--line);color:var(--paper);
+  font-size:14px;font-family:var(--body);font-weight:500;
+  transition:border-color .15s ease,background .15s ease;
+}
+.quiz-opt:hover{border-color:var(--chloro)}
+.quiz-opt.right{background:rgba(139,224,106,.18);border-color:var(--chloro)}
+.quiz-opt.wrong{background:rgba(226,86,74,.16);border-color:var(--danger)}
+.quiz-feedback{margin:12px 0 0;font-size:13px;line-height:1.5;color:var(--muted)}
+.sheet-actions{display:grid;gap:9px;margin-top:6px}
+.unlock{
+  display:flex;gap:12px;align-items:flex-start;
+  padding:14px;border-radius:12px;margin-bottom:16px;
+  background:rgba(139,224,106,.12);border:1px solid rgba(139,224,106,.3);
+}
+.unlock .ico{font-size:22px;line-height:1}
+.unlock h4{margin:0 0 4px;font-family:var(--display);font-size:15px}
+.unlock p{margin:0;font-size:13px;line-height:1.5;color:var(--muted)}
+
+@media (max-width:560px){
+  .sheet{padding:20px}
+  .bed-head h1{max-width:none}
+  .token-label{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms !important;transition-duration:.01ms !important}
+}
+
+</style>
+</head>
+<body>
+<header class="topbar">
+  <button class="brand" id="homeBtn" aria-label="Back to the garden">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <span class="brand-name">Plantus<em>Garden</em></span>
+  </button>
+  <div class="wallet">
+    <div class="token token--sun" title="Sun tokens — won in mini-games, spent on growth">
+      <span class="token-icon" aria-hidden="true">☀</span>
+      <span id="sunCount">0</span>
+      <span class="token-label">sun</span>
+    </div>
+    <div class="token token--plantus" title="Plantus tokens — minted only by healthy growth">
+      <span class="token-icon" aria-hidden="true">✿</span>
+      <span id="plantusCount">0</span>
+      <span class="token-label">plantus</span>
+    </div>
+  </div>
+</header>
+
+<!-- ================= GARDEN HUB ================= -->
+<main id="hub" class="view">
+
+  <section class="bed">
+    <div class="bed-head">
+      <p class="eyebrow">Your garden</p>
+      <h1>Play to earn sun. Spend sun to grow. Growth pays plantus.</h1>
+    </div>
+    <canvas id="gardenCanvas" width="960" height="380" aria-label="Your garden beds"></canvas>
+    <p class="bed-hint" id="bedHint">Tap a plot to tend it</p>
+  </section>
+
+  <section class="plot-panel" id="plotPanel" hidden>
+    <div class="plot-panel-top">
+      <div>
+        <h2 id="plotName">Sunflower</h2>
+        <p class="latin" id="plotLatin">Helianthus annuus</p>
+      </div>
+      <div class="stage-pill" id="plotStage">Seedling</div>
+    </div>
+    <div class="stage-track" id="stageTrack" aria-hidden="true"></div>
+    <p class="plot-caption" id="plotCaption"></p>
+    <p class="plot-trait" id="plotTrait"></p>
+    <div class="plot-actions">
+      <button class="btn btn--grow" id="growBtn">Grow</button>
+      <button class="btn btn--ghost" id="closePlot">Close</button>
+    </div>
+  </section>
+
+  <section class="games">
+    <div class="section-head">
+      <p class="eyebrow">Mini-games</p>
+      <h2>Five ways to earn sun</h2>
+    </div>
+    <div class="game-grid" id="gameGrid"></div>
+  </section>
+
+  <section class="guide">
+    <div class="section-head">
+      <p class="eyebrow">Field guide</p>
+      <h2><span id="factCount">1</span> of <span id="factTotal">16</span> entries collected</h2>
+    </div>
+    <div class="fact-grid" id="factGrid"></div>
+  </section>
+
+  <footer class="foot">
+    <span id="statLine"></span>
+    <button class="link-btn" id="resetBtn">Clear save</button>
+  </footer>
+</main>
+
+<!-- ================= PLAY ================= -->
+<section id="play" class="view" hidden>
+  <div class="play-head">
+    <button class="btn btn--ghost btn--sm" id="quitBtn">Leave run</button>
+    <span class="play-title" id="playTitle"></span>
+    <span class="play-hint" id="playHint"></span>
+  </div>
+  <div class="stage-wrap">
+    <canvas id="gameCanvas" width="480" height="720"></canvas>
+  </div>
+</section>
+
+<!-- ================= OVERLAYS ================= -->
+<div class="overlay" id="overlay" hidden>
+  <div class="sheet" id="sheet"></div>
+</div>
+<script>
+"use strict";
+/* ===== js/data/config.js ===== */
+// config.js — single source of truth for growth, species, economy, hazards, power-ups.
+
+const PALETTE = {
+  ink: '#12211A',
+  ink2: '#1B3026',
+  moss: '#2C4A3A',
+  mossLt: '#3D6650',
+  chloro: '#8BE06A',
+  chloroDk: '#5FB544',
+  pollen: '#FFC93C',
+  petal: '#FF7EA8',
+  rain: '#63C7F0',
+  rainDk: '#3E9BC4',
+  paper: '#EAF2E2',
+  bark: '#8A5A38',
+  barkLt: '#B98453',
+  danger: '#E2564A',
+  fungus: '#C79BE8',
+  snow: '#DCEEF7',
+  storm: '#6C5CA8',
+};
+
+// Six growth stages. Index === stage. Costs are in SUN tokens.
+const STAGES = [
+  {
+    key: 'seedling',
+    name: 'Seedling',
+    cost: 0,
+    plantus: 0,
+    caption: 'A seed has broken its coat. Cotyledons feed it until leaves take over.',
+  },
+  {
+    key: 'small_leaves',
+    name: 'Early growth — small leaves',
+    cost: 30,
+    plantus: 5,
+    caption: 'First true leaves open. Chlorophyll starts capturing light.',
+  },
+  {
+    key: 'medium',
+    name: 'Medium growth',
+    cost: 70,
+    plantus: 8,
+    caption: 'The stem thickens. Xylem and phloem move water up and sugar down.',
+  },
+  {
+    key: 'large_leaves',
+    name: 'Larger leaves',
+    cost: 140,
+    plantus: 12,
+    caption: 'Bigger leaf area means more light captured — and more water lost.',
+  },
+  {
+    key: 'buds',
+    name: 'Advanced growth — flower buds',
+    cost: 240,
+    plantus: 18,
+    caption: 'The plant switches from growing to reproducing. Buds form.',
+  },
+  {
+    key: 'bloom',
+    name: 'Fully blooming',
+    cost: 380,
+    plantus: 30,
+    caption: 'Petals open to advertise nectar. Pollinators do the rest.',
+  },
+];
+
+const MAX_STAGE = STAGES.length - 1;
+
+// Species. `water` is the Cloud Barrage requirement — deliberately very different
+// per plant so the player learns that water need is a real botanical trait.
+const SPECIES = {
+  sunflower: {
+    id: 'sunflower', name: 'Sunflower', latin: 'Helianthus annuus',
+    water: 5, costMul: 1, form: 'herb',
+    petal: '#FFC93C', leaf: '#8BE06A', stem: '#5FB544',
+    trait: 'Heliotropic — young heads track the sun across the sky.',
+  },
+  cactus: {
+    id: 'cactus', name: 'Barrel Cactus', latin: 'Ferocactus wislizeni',
+    water: 2, costMul: 0.8, form: 'succulent',
+    petal: '#FF9F45', leaf: '#5FB544', stem: '#3D8C4E',
+    trait: 'Stores water in its stem and opens its stomata only at night.',
+  },
+  fern: {
+    id: 'fern', name: 'Lady Fern', latin: 'Athyrium filix-femina',
+    water: 6, costMul: 1.1, form: 'fern',
+    petal: '#8BE06A', leaf: '#6FCB52', stem: '#4A9A3C',
+    trait: 'Reproduces with spores, not seeds — no flowers at all.',
+  },
+  rose: {
+    id: 'rose', name: 'Garden Rose', latin: 'Rosa gallica',
+    water: 8, costMul: 1.3, form: 'shrub',
+    petal: '#FF7EA8', leaf: '#6FCB52', stem: '#4A9A3C',
+    trait: 'Thorns are prickles — outgrowths of the skin, not modified stems.',
+  },
+  oak: {
+    id: 'oak', name: 'Oak Sapling', latin: 'Quercus robur',
+    water: 15, costMul: 1.6, form: 'tree',
+    petal: '#C6E86A', leaf: '#5FB544', stem: '#8A5A38',
+    trait: 'A mature oak can move over 150 litres of water a day by transpiration.',
+  },
+};
+
+const SPECIES_ORDER = ['sunflower', 'cactus', 'fern', 'rose', 'oak'];
+
+// Plots beyond the first are bought with PLANTUS tokens.
+const PLOT_UNLOCK_COST = [0, 20, 45, 80, 130];
+
+// Hazards shared across games — each carries the biology reason it exists.
+const HAZARDS = {
+  caterpillar: { name: 'Caterpillar', color: '#A8D46A', why: 'Chewing insect. Eats leaf tissue, cutting photosynthesis.' },
+  beetle:      { name: 'Beetle',      color: '#C97B3A', why: 'Bores into stems and disrupts the xylem water column.' },
+  spider:      { name: 'Spider',      color: '#7B6FA8', why: 'Its web traps pollinators before they reach the flower.' },
+  fungus:      { name: 'Fungus',      color: '#C79BE8', why: 'Spreads by spores across wet tissue and rots it.' },
+  bark:        { name: 'Broken bark', color: '#8A5A38', why: 'A wound in the bark lets pathogens past the plant\'s skin.' },
+  water:       { name: 'Water patch', color: '#63C7F0', why: 'Waterlogged soil starves roots of oxygen.' },
+  hotspot:     { name: 'Hot spot',    color: '#E2564A', why: 'Heat forces stomata shut, so the plant stops taking in CO2.' },
+};
+
+// Power-ups shared across games.
+const POWERUPS = {
+  supersun:   { name: 'Super Sun',   color: '#FFC93C', dur: 8, why: 'More light means a faster rate of photosynthesis.' },
+  waterdrop:  { name: 'Water Drop',  color: '#63C7F0', dur: 0, why: 'Water is a raw ingredient of photosynthesis.' },
+  barkshield: { name: 'Bark Shield', color: '#B98453', dur: 0, why: 'Bark is armour — a corky outer layer that blocks attackers.' },
+  superbloom: { name: 'Super Bloom', color: '#FF7EA8', dur: 6, why: 'A mass flowering event overwhelms herbivores with sheer numbers.' },
+  butterfly:  { name: 'Butterfly',   color: '#FF9F45', dur: 8, why: 'Butterflies carry pollen between flowers as they feed.' },
+};
+
+// Economy: how raw score converts into SUN tokens per game.
+// Tuned against the bot harness in test/balance.mjs so a competent run pays roughly
+// 65 sun in every game. No mini-game should be the shortcut.
+const SUN_RATE = {
+  vine: 0.155,
+  clouds: 0.023,
+  bee: 0.041,
+  seeds: 0.011,
+  survivors: 0.054,
+};
+
+const GAMES = [
+  { id: 'vine',      title: 'Vine Garden',     tag: 'Snake',          verb: 'Grow one unbroken vine',  hint: 'Arrows / WASD / swipe' },
+  { id: 'clouds',    title: 'Cloud Barrage',   tag: 'Bubble shooter', verb: 'Burst clouds, make rain', hint: 'Aim and tap to fire' },
+  { id: 'bee',       title: 'Bee Rush',        tag: 'Endless runner', verb: 'Pollinate at speed',      hint: 'Left / right / up to hop' },
+  { id: 'seeds',     title: 'Seed Crush',      tag: 'Match 3',        verb: 'Match and germinate',     hint: 'Drag a seed onto its neighbour' },
+  { id: 'survivors', title: 'Plant Survivors', tag: 'Survivor-like',  verb: 'Defend the beds',         hint: 'WASD / drag to move' },
+];
+
+const cost = (species, stage) =>
+  Math.round(STAGES[stage].cost * SPECIES[species].costMul);
+
+const plantusFor = (species, stage) =>
+  Math.round(STAGES[stage].plantus * SPECIES[species].costMul);
+
+/* ===== js/data/biology.js ===== */
+// biology.js — the learning layer.
+// Facts unlock through play; quizzes pay out SUN so learning is on the reward path.
+
+const FACTS = {
+  photosynthesis: {
+    title: 'Photosynthesis',
+    body: 'Leaves take in carbon dioxide and water and use light energy to build sugar, releasing oxygen. Light, water and CO2 in — food and oxygen out.',
+    tag: 'Leaf',
+  },
+  chlorophyll: {
+    title: 'Why leaves are green',
+    body: 'Chlorophyll absorbs red and blue light strongly but reflects green, so green is the colour that bounces back to your eye.',
+    tag: 'Leaf',
+  },
+  stomata: {
+    title: 'Stomata',
+    body: 'Tiny mouths on the underside of a leaf. They open to let CO2 in, and close in heat or drought to stop water escaping.',
+    tag: 'Leaf',
+  },
+  xylem: {
+    title: 'Xylem and phloem',
+    body: 'Xylem carries water up from the roots. Phloem carries sugar down from the leaves. Two pipes, opposite directions.',
+    tag: 'Stem',
+  },
+  transpiration: {
+    title: 'Transpiration',
+    body: 'Water evaporating from leaves pulls a continuous thread of water up the stem — the plant drinks without a pump.',
+    tag: 'Water',
+  },
+  roots: {
+    title: 'Root hairs',
+    body: 'Roots absorb water through microscopic hairs. They need oxygen too, which is why drowned soil kills plants.',
+    tag: 'Root',
+  },
+  germination: {
+    title: 'Germination',
+    body: 'A seed needs water, oxygen and the right warmth to wake up. Light is not required — many seeds sprout underground in the dark.',
+    tag: 'Seed',
+  },
+  pollination: {
+    title: 'Pollination',
+    body: 'Pollen must travel from anther to stigma. Insects do it by accident while feeding on nectar, and get paid in sugar.',
+    tag: 'Flower',
+  },
+  nectar: {
+    title: 'Nectar guides',
+    body: 'Many petals carry ultraviolet stripes we cannot see. To a bee they are landing lights pointing straight at the nectar.',
+    tag: 'Flower',
+  },
+  seeddispersal: {
+    title: 'Seed dispersal',
+    body: 'Seeds travel by wind, water, animal fur or gut. Moving away from the parent means less competition for light and water.',
+    tag: 'Seed',
+  },
+  tropism: {
+    title: 'Tropism',
+    body: 'Plants move by growing. Shoots bend toward light (phototropism), roots grow down with gravity (gravitropism).',
+    tag: 'Growth',
+  },
+  defence: {
+    title: 'Plant defence',
+    body: 'Thorns, bitter chemicals, thick bark and sticky resin are all defences. Some plants even call in wasps to attack caterpillars.',
+    tag: 'Defence',
+  },
+  fungusFact: {
+    title: 'Fungal disease',
+    body: 'Fungi spread as spores and need moisture to invade. Good airflow and dry leaves are a plant\'s best protection.',
+    tag: 'Defence',
+  },
+  water_need: {
+    title: 'Water need varies',
+    body: 'A cactus stores water and needs almost none. An oak moves over 150 litres on a hot day. Same rain, very different plants.',
+    tag: 'Water',
+  },
+  bark: {
+    title: 'Bark',
+    body: 'Bark is dead corky tissue on the outside and living phloem just beneath. Damage it in a ring and the tree starves.',
+    tag: 'Stem',
+  },
+  bloomcycle: {
+    title: 'From bud to bloom',
+    body: 'A bud is a packed-up flower. When the plant has enough stored sugar it commits to opening — an expensive, one-shot investment.',
+    tag: 'Flower',
+  },
+};
+
+// Which fact is awarded when a plant reaches each stage.
+const STAGE_FACTS = ['germination', 'chlorophyll', 'xylem', 'photosynthesis', 'bloomcycle', 'pollination'];
+
+// Extra facts unlocked by playing each game at least once.
+const GAME_FACTS = {
+  vine: 'tropism',
+  clouds: 'water_need',
+  bee: 'nectar',
+  seeds: 'seeddispersal',
+  survivors: 'defence',
+};
+
+// Post-game quiz. One question, drawn from the game you just played.
+const QUIZ = {
+  vine: [
+    { q: 'A vine grows toward a gap in the canopy. What is that called?',
+      a: ['Phototropism', 'Germination', 'Transpiration'], correct: 0,
+      why: 'Growth bending toward light is phototropism.' },
+    { q: 'Which tissue carries sugar from the leaves down the stem?',
+      a: ['Xylem', 'Phloem', 'Bark'], correct: 1,
+      why: 'Phloem moves sugar. Xylem moves water upward.' },
+    { q: 'Why does a damaged patch of bark put a plant at risk?',
+      a: ['It looks untidy', 'It lets pathogens past the outer defence', 'It stops photosynthesis'], correct: 1,
+      why: 'Bark is the plant\'s skin. A wound is an open door for disease.' },
+  ],
+  clouds: [
+    { q: 'Which plant here needs the least water?',
+      a: ['Oak sapling', 'Rose', 'Barrel cactus'], correct: 2,
+      why: 'A cactus stores water in its stem and loses very little.' },
+    { q: 'What pulls water up a tall stem without any pump?',
+      a: ['Transpiration', 'Gravity', 'Pollination'], correct: 0,
+      why: 'Evaporation from the leaves drags the water column upward.' },
+    { q: 'Why is constantly waterlogged soil bad for roots?',
+      a: ['Too cold', 'Roots cannot get oxygen', 'Too much sugar'], correct: 1,
+      why: 'Roots respire. Standing water blocks the air they need.' },
+  ],
+  bee: [
+    { q: 'What is the bee actually collecting when it pollinates?',
+      a: ['Nectar and pollen', 'Seeds', 'Sap'], correct: 0,
+      why: 'It feeds on nectar and carries pollen by accident.' },
+    { q: 'Pollen has to reach which part of the flower?',
+      a: ['The anther', 'The stigma', 'The root'], correct: 1,
+      why: 'Anther makes pollen, stigma receives it.' },
+    { q: 'Why are many petals patterned in ultraviolet?',
+      a: ['To repel birds', 'To guide insects to nectar', 'To block sunlight'], correct: 1,
+      why: 'They are landing lights for pollinators that see UV.' },
+  ],
+  seeds: [
+    { q: 'Which three things does a seed need to germinate?',
+      a: ['Water, oxygen, warmth', 'Light, soil, wind', 'Sugar, nitrogen, light'], correct: 0,
+      why: 'Most seeds germinate fine in total darkness.' },
+    { q: 'Why do plants spread their seeds far from home?',
+      a: ['To find better soil colour', 'To avoid competing with the parent', 'To stay warm'], correct: 1,
+      why: 'Distance means less competition for light and water.' },
+    { q: 'What feeds a seedling before its first leaves open?',
+      a: ['The soil', 'Stored food in the seed', 'Rainwater'], correct: 1,
+      why: 'Cotyledons carry the packed lunch.' },
+  ],
+  survivors: [
+    { q: 'A caterpillar damages a plant mainly by:',
+      a: ['Eating leaf area used for photosynthesis', 'Drinking the roots', 'Blocking pollen'], correct: 0,
+      why: 'Less leaf means less food made.' },
+    { q: 'Which is a genuine plant defence?',
+      a: ['Bitter chemicals in the leaves', 'Running away', 'Closing its roots'], correct: 0,
+      why: 'Chemical defence is extremely common — think caffeine and nicotine.' },
+    { q: 'Fungal attacks spread fastest when leaves are:',
+      a: ['Dry and airy', 'Wet and crowded', 'Cold and bright'], correct: 1,
+      why: 'Spores need moisture to germinate on the leaf surface.' },
+  ],
+};
+
+function pickQuiz(gameId) {
+  const bank = QUIZ[gameId] || QUIZ.vine;
+  return bank[Math.floor(Math.random() * bank.length)];
+}
+
+/* ===== js/core/engine.js ===== */
+// engine.js — logical 480x720 portrait canvas, input, loop, drawing helpers.
+
+const VW = 480;
+const VH = 720;
+
+function setupCanvas(canvas) {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = VW * dpr;
+  canvas.height = VH * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.imageSmoothingEnabled = true;
+  return ctx;
+}
+
+/** Maps real pointer coords into the 480x720 logical space. */
+function toLogical(canvas, clientX, clientY) {
+  const r = canvas.getBoundingClientRect();
+  return {
+    x: ((clientX - r.left) / r.width) * VW,
+    y: ((clientY - r.top) / r.height) * VH,
+  };
+}
+
+class Input {
+  constructor(canvas) {
+    this.canvas = canvas;
+    this.keys = new Set();
+    this.pressed = new Set();      // cleared each frame
+    this.pointer = { x: VW / 2, y: VH / 2, down: false, justDown: false, justUp: false };
+    this.swipe = null;             // 'left' | 'right' | 'up' | 'down', cleared each frame
+    this._start = null;
+    this._bind();
+  }
+
+  _bind() {
+    const c = this.canvas;
+    this._onKeyDown = (e) => {
+      const k = e.key.toLowerCase();
+      if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(k)) e.preventDefault();
+      if (!this.keys.has(k)) this.pressed.add(k);
+      this.keys.add(k);
+    };
+    this._onKeyUp = (e) => this.keys.delete(e.key.toLowerCase());
+    window.addEventListener('keydown', this._onKeyDown, { passive: false });
+    window.addEventListener('keyup', this._onKeyUp);
+
+    const down = (x, y) => {
+      const p = toLogical(c, x, y);
+      this.pointer.x = p.x; this.pointer.y = p.y;
+      this.pointer.down = true; this.pointer.justDown = true;
+      this._start = { ...p, t: performance.now() };
+    };
+    const move = (x, y) => {
+      const p = toLogical(c, x, y);
+      this.pointer.x = p.x; this.pointer.y = p.y;
+    };
+    const up = () => {
+      this.pointer.down = false; this.pointer.justUp = true;
+      if (this._start) {
+        const dx = this.pointer.x - this._start.x;
+        const dy = this.pointer.y - this._start.y;
+        const dt = performance.now() - this._start.t;
+        if (dt < 600 && Math.hypot(dx, dy) > 28) {
+          this.swipe = Math.abs(dx) > Math.abs(dy)
+            ? (dx > 0 ? 'right' : 'left')
+            : (dy > 0 ? 'down' : 'up');
+        }
+        this._start = null;
+      }
+    };
+
+    this._onPD = (e) => { c.setPointerCapture?.(e.pointerId); down(e.clientX, e.clientY); };
+    this._onPM = (e) => move(e.clientX, e.clientY);
+    this._onPU = () => up();
+    c.addEventListener('pointerdown', this._onPD);
+    c.addEventListener('pointermove', this._onPM);
+    window.addEventListener('pointerup', this._onPU);
+    c.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+    c.addEventListener('contextmenu', (e) => e.preventDefault());
+  }
+
+  key(...names) { return names.some((n) => this.keys.has(n)); }
+  hit(...names) { return names.some((n) => this.pressed.has(n)); }
+
+  endFrame() {
+    this.pressed.clear();
+    this.swipe = null;
+    this.pointer.justDown = false;
+    this.pointer.justUp = false;
+  }
+
+  destroy() {
+    window.removeEventListener('keydown', this._onKeyDown);
+    window.removeEventListener('keyup', this._onKeyUp);
+    window.removeEventListener('pointerup', this._onPU);
+    this.canvas.removeEventListener('pointerdown', this._onPD);
+    this.canvas.removeEventListener('pointermove', this._onPM);
+  }
+}
+
+/** Runs a game object exposing update(dt)/draw(ctx) and a boolean `over`. */
+function runLoop(game, ctx, input, onEnd) {
+  let raf = 0;
+  let last = performance.now();
+  let stopped = false;
+
+  const frame = (now) => {
+    if (stopped) return;
+    const dt = Math.min((now - last) / 1000, 0.05);
+    last = now;
+    game.update(dt);
+    ctx.clearRect(0, 0, VW, VH);
+    game.draw(ctx);
+    input.endFrame();
+    if (game.over) { stopped = true; onEnd(game.result()); return; }
+    raf = requestAnimationFrame(frame);
+  };
+  raf = requestAnimationFrame(frame);
+
+  return () => { stopped = true; cancelAnimationFrame(raf); };
+}
+
+/* ---------------- drawing helpers ---------------- */
+
+function rr(ctx, x, y, w, h, r) {
+  const rad = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + rad, y);
+  ctx.arcTo(x + w, y, x + w, y + h, rad);
+  ctx.arcTo(x + w, y + h, x, y + h, rad);
+  ctx.arcTo(x, y + h, x, y, rad);
+  ctx.arcTo(x, y, x + w, y, rad);
+  ctx.closePath();
+}
+
+function circle(ctx, x, y, r) {
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.closePath();
+}
+
+function text(ctx, str, x, y, {
+  size = 16, color = '#EAF2E2', align = 'left', weight = 700,
+  font = '"Baloo 2", system-ui, sans-serif', baseline = 'alphabetic',
+} = {}) {
+  ctx.save();
+  ctx.font = `${weight} ${size}px ${font}`;
+  ctx.fillStyle = color;
+  ctx.textAlign = align;
+  ctx.textBaseline = baseline;
+  ctx.fillText(str, x, y);
+  ctx.restore();
+}
+
+function hudBar(ctx, { score, label, right }) {
+  ctx.save();
+  ctx.fillStyle = 'rgba(18,33,26,0.82)';
+  ctx.fillRect(0, 0, VW, 46);
+  ctx.fillStyle = 'rgba(139,224,106,0.25)';
+  ctx.fillRect(0, 45, VW, 1);
+  ctx.restore();
+  text(ctx, String(score), 14, 32, { size: 26, color: '#EAF2E2' });
+  if (label) text(ctx, label, 14 + ctx.measureText(String(score)).width + 46, 31, { size: 13, color: '#8BE06A', weight: 600 });
+  if (right) text(ctx, right, VW - 14, 30, { size: 15, color: '#FFC93C', align: 'right' });
+}
+
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+const rand = (a, b) => a + Math.random() * (b - a);
+const randInt = (a, b) => Math.floor(rand(a, b + 1));
+const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+/* Simple particle pool used by several games. */
+class Particles {
+  constructor() { this.list = []; }
+  burst(x, y, color, n = 10, speed = 120, life = 0.6) {
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const s = speed * (0.4 + Math.random() * 0.8);
+      this.list.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life, max: life, color, r: 2 + Math.random() * 3 });
+    }
+  }
+  update(dt, gravity = 220) {
+    for (let i = this.list.length - 1; i >= 0; i--) {
+      const p = this.list[i];
+      p.life -= dt;
+      if (p.life <= 0) { this.list.splice(i, 1); continue; }
+      p.vy += gravity * dt;
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+    }
+  }
+  draw(ctx) {
+    for (const p of this.list) {
+      ctx.globalAlpha = Math.max(0, p.life / p.max);
+      ctx.fillStyle = p.color;
+      circle(ctx, p.x, p.y, p.r);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+}
+
+/** Floating "+12" style score popups. */
+class Floaters {
+  constructor() { this.list = []; }
+  add(x, y, str, color = '#FFC93C', size = 18) {
+    this.list.push({ x, y, str, color, size, life: 0.9 });
+  }
+  update(dt) {
+    for (let i = this.list.length - 1; i >= 0; i--) {
+      const f = this.list[i];
+      f.life -= dt; f.y -= 34 * dt;
+      if (f.life <= 0) this.list.splice(i, 1);
+    }
+  }
+  draw(ctx) {
+    for (const f of this.list) {
+      ctx.globalAlpha = Math.min(1, f.life / 0.4);
+      text(ctx, f.str, f.x, f.y, { size: f.size, color: f.color, align: 'center' });
+    }
+    ctx.globalAlpha = 1;
+  }
+}
+
+/* ===== js/core/plantart.js ===== */
+// plantart.js — one renderer, six growth stages, five plant forms.
+// Used by the garden hub and by the Cloud Barrage garden strip so growth reads identically.
+
+
+const sway = (t, i) => Math.sin(t * 1.4 + i * 1.1) * 0.10;
+
+function leaf(ctx, x, y, len, ang, color) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(ang);
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.quadraticCurveTo(len * 0.5, -len * 0.42, len, 0);
+  ctx.quadraticCurveTo(len * 0.5, len * 0.42, 0, 0);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,0.16)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, 0); ctx.lineTo(len, 0);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function bloom(ctx, x, y, r, petal, open) {
+  const petals = 7;
+  ctx.save();
+  ctx.translate(x, y);
+  if (open < 1) {
+    // a bud: closed sepals
+    ctx.fillStyle = '#5FB544';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, r * 0.55, r * 0.85, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = petal;
+    ctx.globalAlpha = 0.85;
+    ctx.beginPath();
+    ctx.ellipse(0, -r * 0.45, r * 0.34, r * 0.34, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.restore();
+    return;
+  }
+  for (let i = 0; i < petals; i++) {
+    const a = (i / petals) * Math.PI * 2;
+    ctx.save();
+    ctx.rotate(a);
+    ctx.fillStyle = petal;
+    ctx.beginPath();
+    ctx.ellipse(0, -r * 0.78, r * 0.36, r * 0.72, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+  ctx.fillStyle = '#8A5A38';
+  circle(ctx, 0, 0, r * 0.42); ctx.fill();
+  ctx.fillStyle = 'rgba(255,201,60,0.55)';
+  circle(ctx, 0, 0, r * 0.24); ctx.fill();
+  ctx.restore();
+}
+
+/**
+ * Draw a plant standing on the soil line.
+ * @param stage 0..5  (seedling, small leaves, medium, large leaves, buds, bloom)
+ * @param size overall height budget in px
+ */
+function drawPlant(ctx, x, baseY, size, speciesId, stage, t = 0) {
+  const sp = SPECIES[speciesId] || SPECIES.sunflower;
+  const grow = [0.16, 0.3, 0.5, 0.72, 0.88, 1][stage] ?? 0.16;
+  const h = size * grow;
+
+  ctx.save();
+
+  if (sp.form === 'succulent') {
+    const w = size * 0.30 * (0.55 + grow * 0.65);
+    const bh = h * 0.8;
+    ctx.fillStyle = sp.stem;
+    ctx.beginPath();
+    ctx.ellipse(x, baseY - bh * 0.5, w, bh * 0.55, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.18)';
+    ctx.lineWidth = 1.5;
+    for (let i = -2; i <= 2; i++) {
+      ctx.beginPath();
+      ctx.moveTo(x + (i * w) / 2.6, baseY - bh * 0.98);
+      ctx.lineTo(x + (i * w) / 2.6, baseY - bh * 0.06);
+      ctx.stroke();
+    }
+    ctx.strokeStyle = 'rgba(234,242,226,0.75)';
+    ctx.lineWidth = 1;
+    const spines = 3 + stage * 2;
+    for (let i = 0; i < spines; i++) {
+      const a = -Math.PI / 2 + (i / (spines - 1) - 0.5) * 2.2;
+      const px = x + Math.cos(a) * w, py = baseY - bh * 0.5 + Math.sin(a) * bh * 0.55;
+      ctx.beginPath(); ctx.moveTo(px, py);
+      ctx.lineTo(px + Math.cos(a) * 5, py + Math.sin(a) * 5);
+      ctx.stroke();
+    }
+    if (stage >= 4) bloom(ctx, x, baseY - bh - 4, size * 0.11, sp.petal, stage >= 5 ? 1 : 0);
+    ctx.restore();
+    return;
+  }
+
+  if (sp.form === 'tree') {
+    const tw = size * 0.09 * (0.5 + grow);
+    ctx.fillStyle = sp.stem;
+    ctx.beginPath();
+    ctx.moveTo(x - tw, baseY);
+    ctx.lineTo(x - tw * 0.55, baseY - h);
+    ctx.lineTo(x + tw * 0.55, baseY - h);
+    ctx.lineTo(x + tw, baseY);
+    ctx.closePath(); ctx.fill();
+    const blobs = 1 + stage;
+    for (let i = 0; i < blobs; i++) {
+      const a = (i / blobs) * Math.PI * 2 + t * 0.3;
+      const r = size * (0.10 + grow * 0.13);
+      ctx.fillStyle = i % 2 ? sp.leaf : '#6FCB52';
+      circle(ctx, x + Math.cos(a) * r * 0.9, baseY - h - r * 0.25 + Math.sin(a) * r * 0.5, r);
+      ctx.fill();
+    }
+    if (stage >= 4) {
+      for (let i = 0; i < 3; i++) {
+        bloom(ctx, x - 16 + i * 16, baseY - h - size * 0.16, size * 0.05, sp.petal, stage >= 5 ? 1 : 0);
+      }
+    }
+    ctx.restore();
+    return;
+  }
+
+  if (sp.form === 'fern') {
+    const fronds = 2 + stage;
+    for (let i = 0; i < fronds; i++) {
+      const side = i % 2 ? 1 : -1;
+      const a = -Math.PI / 2 + side * (0.25 + (i / fronds) * 0.6) + sway(t, i);
+      ctx.save();
+      ctx.translate(x, baseY);
+      ctx.rotate(a);
+      ctx.strokeStyle = sp.stem; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(h * 0.9, 0); ctx.stroke();
+      const pinnae = 5 + stage;
+      for (let j = 1; j <= pinnae; j++) {
+        const px = (h * 0.9 * j) / (pinnae + 1);
+        const pl = (h * 0.20) * (1 - j / (pinnae + 2));
+        leaf(ctx, px, 0, pl, -0.7, sp.leaf);
+        leaf(ctx, px, 0, pl, 0.7, sp.leaf);
+      }
+      ctx.restore();
+    }
+    ctx.restore();
+    return;
+  }
+
+  // herb / shrub: stem + paired leaves + buds/blooms
+  ctx.strokeStyle = sp.stem;
+  ctx.lineWidth = Math.max(2.5, size * 0.028 * (0.6 + grow));
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(x, baseY);
+  ctx.quadraticCurveTo(x + Math.sin(t * 1.2) * h * 0.06, baseY - h * 0.55, x, baseY - h);
+  ctx.stroke();
+
+  const pairs = [0, 1, 2, 3, 3, 3][stage];
+  const leafLen = size * [0.06, 0.10, 0.15, 0.20, 0.21, 0.22][stage];
+  for (let i = 0; i < pairs; i++) {
+    const ly = baseY - h * (0.28 + (i * 0.55) / Math.max(1, pairs));
+    leaf(ctx, x, ly, leafLen, -0.55 + sway(t, i), sp.leaf);
+    leaf(ctx, x, ly, leafLen, Math.PI + 0.55 - sway(t, i + 3), sp.leaf);
+  }
+
+  if (stage === 0) {
+    leaf(ctx, x, baseY - h * 0.75, size * 0.07, -0.8, sp.leaf);
+    leaf(ctx, x, baseY - h * 0.75, size * 0.07, Math.PI + 0.8, sp.leaf);
+  }
+
+  if (stage === 4) bloom(ctx, x, baseY - h - size * 0.03, size * 0.075, sp.petal, 0);
+  if (stage === 5) {
+    bloom(ctx, x, baseY - h - size * 0.04, size * 0.11, sp.petal, 1);
+    if (sp.form === 'shrub') {
+      bloom(ctx, x - size * 0.16, baseY - h * 0.72, size * 0.075, sp.petal, 1);
+      bloom(ctx, x + size * 0.16, baseY - h * 0.6, size * 0.075, sp.petal, 1);
+    }
+  }
+  ctx.restore();
+}
+
+/* ===== js/core/state.js ===== */
+// state.js — save file, token economy, growth rules.
+
+
+const KEY = 'plantus.save.v1';
+
+const listeners = new Set();
+const onChange = (fn) => { listeners.add(fn); return () => listeners.delete(fn); };
+const emit = () => listeners.forEach((f) => f(state));
+
+function fresh() {
+  return {
+    sun: 40,
+    plantus: 0,
+    plots: SPECIES_ORDER.map((sp, i) => ({ species: sp, stage: 0, unlocked: i === 0 })),
+    facts: ['germination'],
+    played: {},
+    best: {},
+    totals: { sunEarned: 40, quizRight: 0, quizAsked: 0, blooms: 0 },
+  };
+}
+
+let state = load();
+
+function load() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (!raw) return fresh();
+    const parsed = JSON.parse(raw);
+    const base = fresh();
+    return { ...base, ...parsed, totals: { ...base.totals, ...(parsed.totals || {}) } };
+  } catch {
+    return fresh();
+  }
+}
+
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch { /* private mode */ }
+}
+
+function commit() { save(); emit(); }
+
+function reset() {
+  state = fresh();
+  commit();
+}
+
+/* ---------- tokens ---------- */
+
+function addSun(n) {
+  if (n <= 0) return;
+  state.sun += n;
+  state.totals.sunEarned += n;
+  commit();
+}
+
+function addPlantus(n) {
+  if (n <= 0) return;
+  state.plantus += n;
+  commit();
+}
+
+/* ---------- field guide ---------- */
+
+function unlockFact(id) {
+  if (!id || state.facts.includes(id)) return false;
+  state.facts.push(id);
+  commit();
+  return true;
+}
+
+/* ---------- growth ---------- */
+
+function growthCost(i) {
+  const p = state.plots[i];
+  if (!p || p.stage >= MAX_STAGE) return null;
+  return cost(p.species, p.stage + 1);
+}
+
+function canGrow(i) {
+  const c = growthCost(i);
+  return c !== null && state.sun >= c;
+}
+
+/**
+ * Spend SUN to advance one growth stage. Returns a report, or null if blocked.
+ * Growing is the only way to mint PLANTUS — the positive-outcome currency.
+ */
+function grow(i) {
+  const p = state.plots[i];
+  if (!p || !p.unlocked || p.stage >= MAX_STAGE) return null;
+  const c = growthCost(i);
+  if (state.sun < c) return null;
+
+  state.sun -= c;
+  p.stage += 1;
+
+  const reward = plantusFor(p.species, p.stage);
+  state.plantus += reward;
+
+  const factId = STAGE_FACTS[p.stage];
+  const isNewFact = factId && !state.facts.includes(factId);
+  if (isNewFact) state.facts.push(factId);
+
+  if (p.stage === MAX_STAGE) state.totals.blooms += 1;
+
+  commit();
+  return { stage: p.stage, spent: c, plantus: reward, factId: isNewFact ? factId : null };
+}
+
+function plotUnlockCost(i) { return PLOT_UNLOCK_COST[i] ?? 999; }
+
+function unlockPlot(i) {
+  const p = state.plots[i];
+  if (!p || p.unlocked) return false;
+  const c = plotUnlockCost(i);
+  if (state.plantus < c) return false;
+  state.plantus -= c;
+  p.unlocked = true;
+  commit();
+  return true;
+}
+
+/* ---------- games ---------- */
+
+function recordRun(gameId, score, sun) {
+  state.best[gameId] = Math.max(state.best[gameId] || 0, score);
+  const firstTime = !state.played[gameId];
+  state.played[gameId] = (state.played[gameId] || 0) + 1;
+  state.sun += sun;
+  state.totals.sunEarned += sun;
+
+  let newFact = null;
+  if (firstTime) {
+    const f = GAME_FACTS[gameId];
+    if (f && !state.facts.includes(f)) { state.facts.push(f); newFact = f; }
+  }
+  commit();
+  return { best: state.best[gameId], newFact };
+}
+
+function recordQuiz(right) {
+  state.totals.quizAsked += 1;
+  if (right) state.totals.quizRight += 1;
+  commit();
+}
+
+/* ===== namespace shim for main.js ===== */
+const S = {
+  get state() { return state; },
+  save, reset, addSun, addPlantus, unlockFact, growthCost, canGrow, grow,
+  plotUnlockCost, unlockPlot, recordRun, recordQuiz, onChange,
+};
+/* ===== js/games/vine-garden.js ===== */
+const createVineGarden = (() => {
+// vine-garden.js — Snake, re-read as a vine. You never stop growing; you route around damage.
+// Plant connection: every node you take becomes a leaf, then a bud, then a bloom on your own vine.
+
+
+const CELL = 30;
+const COLS = 16;
+const TOP = 60;
+const ROWS = Math.floor((VH - TOP - 8) / CELL);
+
+const VINE_STAGES = [
+  { at: 0,  name: 'Seedling' },
+  { at: 6,  name: 'Small leaves' },
+  { at: 12, name: 'Medium growth' },
+  { at: 20, name: 'Larger leaves' },
+  { at: 30, name: 'Flower buds' },
+  { at: 42, name: 'Full bloom' },
+];
+
+const key = (x, y) => `${x},${y}`;
+
+function createVineGarden() {
+  const g = {
+    body: [{ x: 7, y: 12 }, { x: 7, y: 13 }, { x: 7, y: 14 }],
+    dir: { x: 0, y: -1 },
+    queue: [],
+    tick: 0,
+    speed: 0.165,
+    score: 0,
+    leaves: 0,
+    nodes: [],
+    hazards: [],
+    powerups: [],
+    fx: new Particles(),
+    floats: new Floaters(),
+    shield: false,
+    doubleT: 0,
+    magnetT: 0,
+    bloomT: 0,
+    slipT: 0,
+    hazardTimer: 4,
+    puTimer: 9,
+    t: 0,
+    over: false,
+    dead: null,
+    shake: 0,
+  };
+
+  const occupied = () => {
+    const s = new Set();
+    g.body.forEach((b) => s.add(key(b.x, b.y)));
+    g.hazards.forEach((h) => s.add(key(h.x, h.y)));
+    g.nodes.forEach((n) => s.add(key(n.x, n.y)));
+    g.powerups.forEach((p) => s.add(key(p.x, p.y)));
+    return s;
+  };
+
+  function freeCell() {
+    const taken = occupied();
+    for (let i = 0; i < 200; i++) {
+      const x = randInt(0, COLS - 1), y = randInt(0, ROWS - 1);
+      if (!taken.has(key(x, y))) return { x, y };
+    }
+    return null;
+  }
+
+  function spawnNode(kind) {
+    const c = freeCell();
+    if (c) g.nodes.push({ ...c, kind: kind || (g.leaves >= 12 && Math.random() < 0.3 ? 'flower' : 'leaf'), bob: Math.random() * 6 });
+  }
+
+  function spawnHazard() {
+    const c = freeCell();
+    if (!c) return;
+    const pool = g.t < 25 ? ['caterpillar', 'bark', 'water'] : ['caterpillar', 'beetle', 'spider', 'fungus', 'bark', 'water', 'hotspot'];
+    const type = pick(pool);
+    g.hazards.push({
+      ...c, type,
+      dir: pick([{ x: 1, y: 0 }, { x: -1, y: 0 }, { x: 0, y: 1 }, { x: 0, y: -1 }]),
+      moveT: 0,
+      age: 0,
+    });
+  }
+
+  function spawnPowerup() {
+    const c = freeCell();
+    if (!c) return;
+    g.powerups.push({ ...c, type: pick(['supersun', 'waterdrop', 'barkshield', 'superbloom', 'butterfly']), life: 14 });
+  }
+
+  for (let i = 0; i < 3; i++) spawnNode('leaf');
+  g.hazards.push({ ...freeCell(), type: 'bark', dir: { x: 0, y: 0 }, moveT: 0, age: 0 });
+
+  const stageIndex = () => {
+    let s = 0;
+    VINE_STAGES.forEach((v, i) => { if (g.leaves >= v.at) s = i; });
+    return s;
+  };
+
+  function die(reason) {
+    if (g.shield) {
+      g.shield = false;
+      g.floats.add(g.body[0].x * CELL + CELL / 2, TOP + g.body[0].y * CELL, 'Bark held!', PALETTE.barkLt, 16);
+      g.fx.burst(g.body[0].x * CELL + CELL / 2, TOP + g.body[0].y * CELL + CELL / 2, PALETTE.barkLt, 18, 160);
+      g.hazards = g.hazards.filter((h) => !(h.x === g.body[0].x && h.y === g.body[0].y));
+      g.shake = 0.35;
+      return;
+    }
+    g.dead = reason;
+    g.over = true;
+  }
+
+  function step() {
+    if (g.queue.length && !g.slipT) {
+      const n = g.queue.shift();
+      if (n.x !== -g.dir.x || n.y !== -g.dir.y) g.dir = n;
+    }
+    if (g.slipT > 0) g.slipT -= 1;
+
+    const head = { x: g.body[0].x + g.dir.x, y: g.body[0].y + g.dir.y };
+
+    if (head.x < 0 || head.y < 0 || head.x >= COLS || head.y >= ROWS) return die('You grew off the trellis.');
+    if (g.body.some((b, i) => i < g.body.length - 1 && b.x === head.x && b.y === head.y)) return die('The vine tangled in itself.');
+
+    const hz = g.hazards.find((h) => h.x === head.x && h.y === head.y);
+    if (hz) {
+      if (hz.type === 'water') {
+        g.slipT = 1;
+        g.floats.add(head.x * CELL + CELL / 2, TOP + head.y * CELL, 'slip', PALETTE.rain, 14);
+      } else if (hz.type === 'hotspot') {
+        g.hazards = g.hazards.filter((h) => h !== hz);
+        g.score = Math.max(0, g.score - 15);
+        for (let i = 0; i < 3 && g.body.length > 3; i++) g.body.pop();
+        g.leaves = Math.max(0, g.leaves - 2);
+        g.shake = 0.3;
+        g.fx.burst(head.x * CELL + CELL / 2, TOP + head.y * CELL + CELL / 2, PALETTE.danger, 16, 140);
+        g.floats.add(head.x * CELL + CELL / 2, TOP + head.y * CELL, 'scorched', PALETTE.danger, 15);
+      } else {
+        return die(`${HAZARDS[hz.type].name} got the vine.`);
+      }
+    }
+
+    g.body.unshift(head);
+
+    const ni = g.nodes.findIndex((n) => n.x === head.x && n.y === head.y);
+    if (ni >= 0) {
+      const node = g.nodes[ni];
+      g.nodes.splice(ni, 1);
+      const base = node.kind === 'flower' ? 25 : 10;
+      const pts = base * (g.doubleT > 0 ? 2 : 1);
+      g.score += pts;
+      g.leaves += 1;
+      g.floats.add(head.x * CELL + CELL / 2, TOP + head.y * CELL, `+${pts}`, node.kind === 'flower' ? PALETTE.petal : PALETTE.chloro);
+      g.fx.burst(head.x * CELL + CELL / 2, TOP + head.y * CELL + CELL / 2, node.kind === 'flower' ? PALETTE.petal : PALETTE.chloro, 12, 130);
+      spawnNode();
+      if (Math.random() < 0.35) spawnNode();
+      g.speed = Math.max(0.075, 0.165 - g.leaves * 0.0022);
+    } else {
+      g.body.pop();
+    }
+
+    const pi = g.powerups.findIndex((p) => p.x === head.x && p.y === head.y);
+    if (pi >= 0) {
+      const p = g.powerups[pi];
+      g.powerups.splice(pi, 1);
+      applyPower(p.type, head);
+    }
+
+    // hazards act on the same tick
+    for (const h of g.hazards) {
+      h.age += 1;
+      if (h.type === 'caterpillar' || h.type === 'beetle') {
+        h.moveT += 1;
+        const every = h.type === 'beetle' ? 1 : 2;
+        if (h.moveT >= every) {
+          h.moveT = 0;
+          let nx = h.x + h.dir.x, ny = h.y + h.dir.y;
+          if (nx < 0 || ny < 0 || nx >= COLS || ny >= ROWS) {
+            h.dir = { x: -h.dir.x, y: -h.dir.y };
+            nx = h.x + h.dir.x; ny = h.y + h.dir.y;
+          }
+          h.x = nx; h.y = ny;
+          if (h.x === g.body[0].x && h.y === g.body[0].y) die(`${HAZARDS[h.type].name} got the vine.`);
+        }
+      }
+      if (h.type === 'fungus' && h.age % 14 === 0 && g.hazards.length < 26) {
+        const d = pick([{ x: 1, y: 0 }, { x: -1, y: 0 }, { x: 0, y: 1 }, { x: 0, y: -1 }]);
+        const nx = h.x + d.x, ny = h.y + d.y;
+        const clash = g.hazards.some((o) => o.x === nx && o.y === ny) || g.body.some((b) => b.x === nx && b.y === ny);
+        if (nx >= 0 && ny >= 0 && nx < COLS && ny < ROWS && !clash) {
+          g.hazards.push({ x: nx, y: ny, type: 'fungus', dir: { x: 0, y: 0 }, moveT: 0, age: 1 });
+        }
+      }
+    }
+  }
+
+  function applyPower(type, at) {
+    const px = at.x * CELL + CELL / 2, py = TOP + at.y * CELL + CELL / 2;
+    g.fx.burst(px, py, POWERUPS[type].color, 20, 170);
+    const label = POWERUPS[type].name;
+    g.floats.add(px, py - 6, label, POWERUPS[type].color, 16);
+    if (type === 'supersun') g.doubleT = 8;
+    if (type === 'waterdrop') { for (let i = 0; i < 3; i++) g.body.push({ ...g.body[g.body.length - 1] }); g.leaves += 1; }
+    if (type === 'barkshield') g.shield = true;
+    if (type === 'superbloom') { g.bloomT = 6; g.nodes.forEach((n) => (n.kind = 'flower')); }
+    if (type === 'butterfly') g.magnetT = 8;
+  }
+
+  g.update = (dt) => {
+    g.t += dt;
+    g.shake = Math.max(0, g.shake - dt);
+    g.doubleT = Math.max(0, g.doubleT - dt);
+    g.magnetT = Math.max(0, g.magnetT - dt);
+    g.bloomT = Math.max(0, g.bloomT - dt);
+    g.fx.update(dt, 40);
+    g.floats.update(dt);
+
+    g.hazardTimer -= dt;
+    if (g.hazardTimer <= 0) { spawnHazard(); g.hazardTimer = Math.max(4.5, 11 - g.t * 0.08); }
+    g.puTimer -= dt;
+    if (g.puTimer <= 0) { spawnPowerup(); g.puTimer = 13 + Math.random() * 6; }
+    g.powerups.forEach((p) => (p.life -= dt));
+    g.powerups = g.powerups.filter((p) => p.life > 0);
+
+    if (g.magnetT > 0 && g.nodes.length) {
+      const h = g.body[0];
+      let best = null, bd = 99;
+      for (const n of g.nodes) {
+        const d = Math.abs(n.x - h.x) + Math.abs(n.y - h.y);
+        if (d < bd) { bd = d; best = n; }
+      }
+      if (best && bd > 1 && Math.floor(g.t * 4) % 2 === 0) {
+        const dx = Math.sign(h.x - best.x), dy = Math.sign(h.y - best.y);
+        if (Math.abs(h.x - best.x) > Math.abs(h.y - best.y)) best.x += dx; else best.y += dy;
+      }
+    }
+
+    g.tick += dt;
+    while (g.tick >= g.speed && !g.over) { g.tick -= g.speed; step(); }
+  };
+
+  g.input = (input) => {
+    // Only queue a genuine change of direction. Without this, rapid input stacks
+    // duplicates and the vine ends up steering on decisions two ticks old.
+    const set = (x, y) => {
+      const last = g.queue.length ? g.queue[g.queue.length - 1] : g.dir;
+      if (last.x === x && last.y === y) return;
+      if (last.x === -x && last.y === -y) return;
+      if (g.queue.length < 2) g.queue.push({ x, y });
+    };
+    if (input.hit('arrowup', 'w')) set(0, -1);
+    if (input.hit('arrowdown', 's')) set(0, 1);
+    if (input.hit('arrowleft', 'a')) set(-1, 0);
+    if (input.hit('arrowright', 'd')) set(1, 0);
+    if (input.swipe === 'up') set(0, -1);
+    if (input.swipe === 'down') set(0, 1);
+    if (input.swipe === 'left') set(-1, 0);
+    if (input.swipe === 'right') set(1, 0);
+  };
+
+  g.draw = (ctx) => {
+    ctx.save();
+    if (g.shake > 0) ctx.translate((Math.random() - 0.5) * 6, (Math.random() - 0.5) * 6);
+
+    ctx.fillStyle = PALETTE.ink2;
+    ctx.fillRect(0, TOP, VW, ROWS * CELL);
+    ctx.strokeStyle = 'rgba(139,224,106,0.06)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x <= COLS; x++) { ctx.beginPath(); ctx.moveTo(x * CELL, TOP); ctx.lineTo(x * CELL, TOP + ROWS * CELL); ctx.stroke(); }
+    for (let y = 0; y <= ROWS; y++) { ctx.beginPath(); ctx.moveTo(0, TOP + y * CELL); ctx.lineTo(VW, TOP + y * CELL); ctx.stroke(); }
+
+    for (const h of g.hazards) drawHazard(ctx, h, g.t);
+    for (const n of g.nodes) {
+      const cx = n.x * CELL + CELL / 2, cy = TOP + n.y * CELL + CELL / 2 + Math.sin(g.t * 2 + n.bob) * 2;
+      if (n.kind === 'flower') {
+        for (let i = 0; i < 6; i++) {
+          const a = (i / 6) * Math.PI * 2 + g.t * 0.5;
+          ctx.fillStyle = PALETTE.petal;
+          circle(ctx, cx + Math.cos(a) * 7, cy + Math.sin(a) * 7, 4.6); ctx.fill();
+        }
+        ctx.fillStyle = PALETTE.pollen; circle(ctx, cx, cy, 4.5); ctx.fill();
+      } else {
+        ctx.save(); ctx.translate(cx, cy); ctx.rotate(Math.sin(g.t + n.bob) * 0.3);
+        ctx.fillStyle = PALETTE.chloro;
+        ctx.beginPath();
+        ctx.moveTo(-9, 0); ctx.quadraticCurveTo(0, -8, 9, 0); ctx.quadraticCurveTo(0, 8, -9, 0); ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    for (const p of g.powerups) {
+      const cx = p.x * CELL + CELL / 2, cy = TOP + p.y * CELL + CELL / 2;
+      const pulse = 1 + Math.sin(g.t * 6) * 0.08;
+      ctx.globalAlpha = p.life < 3 && Math.floor(p.life * 6) % 2 === 0 ? 0.35 : 1;
+      ctx.fillStyle = POWERUPS[p.type].color;
+      circle(ctx, cx, cy, 11 * pulse); ctx.fill();
+      ctx.fillStyle = PALETTE.ink;
+      text(ctx, powerGlyph(p.type), cx, cy + 5, { size: 14, align: 'center' });
+      ctx.globalAlpha = 1;
+    }
+
+    // vine body: older segments carry more mature growth
+    const st = stageIndex();
+    for (let i = g.body.length - 1; i >= 0; i--) {
+      const b = g.body[i];
+      const cx = b.x * CELL + CELL / 2, cy = TOP + b.y * CELL + CELL / 2;
+      const isHead = i === 0;
+      ctx.fillStyle = isHead ? PALETTE.chloro : (i % 2 ? PALETTE.chloroDk : '#54A33C');
+      rr(ctx, cx - CELL / 2 + 2, cy - CELL / 2 + 2, CELL - 4, CELL - 4, isHead ? 10 : 8);
+      ctx.fill();
+      if (!isHead && i % 3 === 0 && st >= 1) {
+        ctx.save(); ctx.translate(cx, cy); ctx.rotate(i * 0.7 + Math.sin(g.t * 1.5 + i) * 0.15);
+        ctx.fillStyle = PALETTE.chloro;
+        const L = 6 + st * 1.6;
+        ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(L * 0.6, -L * 0.5, L * 1.6, 0);
+        ctx.quadraticCurveTo(L * 0.6, L * 0.5, 0, 0); ctx.fill();
+        ctx.restore();
+      }
+      if (!isHead && st >= 4 && i % 7 === 0) {
+        const open = st >= 5;
+        ctx.fillStyle = open ? PALETTE.petal : '#7FBF5A';
+        if (open) {
+          for (let k = 0; k < 5; k++) {
+            const a = (k / 5) * Math.PI * 2 + g.t;
+            circle(ctx, cx + Math.cos(a) * 5, cy + Math.sin(a) * 5, 3.6); ctx.fill();
+          }
+          ctx.fillStyle = PALETTE.pollen; circle(ctx, cx, cy, 3); ctx.fill();
+        } else { circle(ctx, cx, cy, 5); ctx.fill(); }
+      }
+      if (isHead) {
+        ctx.fillStyle = PALETTE.ink;
+        const ex = g.dir.x * 4, ey = g.dir.y * 4;
+        circle(ctx, cx - 4 + ex, cy - 2 + ey, 2.4); ctx.fill();
+        circle(ctx, cx + 4 + ex, cy - 2 + ey, 2.4); ctx.fill();
+        if (g.shield) {
+          ctx.strokeStyle = PALETTE.barkLt; ctx.lineWidth = 3;
+          circle(ctx, cx, cy, CELL * 0.62); ctx.stroke();
+        }
+      }
+    }
+
+    g.fx.draw(ctx);
+    g.floats.draw(ctx);
+    ctx.restore();
+
+    hudBar(ctx, { score: g.score, label: VINE_STAGES[st].name.toUpperCase(), right: `${g.leaves} nodes` });
+    let bx = VW - 14;
+    const badge = (on, label, color) => {
+      if (!on) return;
+      const w = ctx.measureText(label).width + 20;
+      ctx.fillStyle = color;
+      rr(ctx, bx - w, 52, w, 22, 11); ctx.fill();
+      text(ctx, label, bx - w / 2, 67, { size: 12, color: PALETTE.ink, align: 'center' });
+      bx -= w + 6;
+    };
+    ctx.font = '700 12px "Baloo 2", sans-serif';
+    badge(g.doubleT > 0, 'x2 SUN', PALETTE.pollen);
+    badge(g.magnetT > 0, 'BUTTERFLY', '#FF9F45');
+    badge(g.shield, 'BARK', PALETTE.barkLt);
+  };
+
+  g.result = () => ({
+    score: g.score,
+    sun: Math.max(1, Math.floor(g.score * SUN_RATE.vine)),
+    reason: g.dead || 'Run complete.',
+    stats: [
+      ['Nodes absorbed', g.leaves],
+      ['Vine length', g.body.length],
+      ['Growth reached', VINE_STAGES[stageIndex()].name],
+    ],
+    lesson: 'A vine grows toward light and around damage — that is phototropism doing the steering.',
+  });
+
+  return g;
+}
+
+function powerGlyph(t) {
+  return { supersun: '☀', waterdrop: '💧', barkshield: '🛡', superbloom: '✿', butterfly: '🦋' }[t] || '?';
+}
+
+function drawHazard(ctx, h, t) {
+  const cx = h.x * CELL + CELL / 2, cy = TOP + h.y * CELL + CELL / 2;
+  const c = HAZARDS[h.type].color;
+  ctx.save();
+  if (h.type === 'bark') {
+    ctx.fillStyle = '#6E4629';
+    rr(ctx, cx - 14, cy - 14, 28, 28, 5); ctx.fill();
+    ctx.strokeStyle = '#4A2E1A'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(cx - 8, cy - 12); ctx.lineTo(cx + 3, cy + 2); ctx.lineTo(cx - 4, cy + 12); ctx.stroke();
+  } else if (h.type === 'water') {
+    ctx.fillStyle = 'rgba(99,199,240,0.45)';
+    ctx.beginPath(); ctx.ellipse(cx, cy, 13, 9, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = 'rgba(234,242,226,0.5)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.ellipse(cx, cy, 8 + Math.sin(t * 3) * 2, 5, 0, 0, Math.PI * 2); ctx.stroke();
+  } else if (h.type === 'hotspot') {
+    const p = 0.5 + Math.sin(t * 5) * 0.2;
+    ctx.fillStyle = `rgba(226,86,74,${0.35 + p * 0.35})`;
+    circle(ctx, cx, cy, 13); ctx.fill();
+    ctx.fillStyle = PALETTE.pollen;
+    circle(ctx, cx, cy, 5 + p * 2); ctx.fill();
+  } else if (h.type === 'fungus') {
+    ctx.fillStyle = c;
+    for (let i = 0; i < 4; i++) {
+      const a = (i / 4) * Math.PI * 2 + t * 0.4;
+      circle(ctx, cx + Math.cos(a) * 6, cy + Math.sin(a) * 6, 6); ctx.fill();
+    }
+    ctx.fillStyle = 'rgba(18,33,26,0.5)'; circle(ctx, cx, cy, 4); ctx.fill();
+  } else if (h.type === 'spider') {
+    ctx.strokeStyle = 'rgba(234,242,226,0.35)'; ctx.lineWidth = 1;
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * Math.PI * 2;
+      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(a) * 14, cy + Math.sin(a) * 14); ctx.stroke();
+    }
+    ctx.fillStyle = c; circle(ctx, cx, cy, 7); ctx.fill();
+    ctx.fillStyle = PALETTE.paper; circle(ctx, cx - 2.5, cy - 1, 1.5); ctx.fill(); circle(ctx, cx + 2.5, cy - 1, 1.5); ctx.fill();
+  } else if (h.type === 'beetle') {
+    ctx.fillStyle = c;
+    ctx.beginPath(); ctx.ellipse(cx, cy, 11, 8, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = 'rgba(18,33,26,0.6)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(cx, cy - 8); ctx.lineTo(cx, cy + 8); ctx.stroke();
+  } else {
+    ctx.fillStyle = c;
+    for (let i = 0; i < 4; i++) circle(ctx, cx - 9 + i * 6, cy + Math.sin(t * 6 + i) * 2, 5.5), ctx.fill();
+    ctx.fillStyle = PALETTE.ink; circle(ctx, cx + 9, cy - 1, 1.6); ctx.fill();
+  }
+  ctx.restore();
+}
+return createVineGarden;
+})();
+
+/* ===== js/games/cloud-barrage.js ===== */
+const createCloudBarrage = (() => {
+// cloud-barrage.js — Bubble shooter, but you are not clearing the board.
+// Every burst becomes rain that falls on the garden below, and each plant needs a
+// different amount of water. Cactus 2. Sunflower 5. Fern 6. Rose 8. Oak 15.
+// You win by growing all five, not by emptying the sky.
+
+
+
+const R = 21;             // cloud radius
+const CW = 50;            // column pitch
+const RH = 43;            // row pitch
+const LEFT = 40;
+const TOP = 62;
+const GARDEN_Y = 470;     // clouds must never reach this line
+const SOIL_Y = 612;
+const LAUNCH = { x: VW / 2, y: 668 };
+const SHOTS = 30;
+
+const TYPES = {
+  cumulus: { color: '#9FD8EE', water: 1, name: 'Cumulus' },
+  rain:    { color: '#4FA8D8', water: 3, name: 'Rain cloud' },
+  storm:   { color: '#6C5CA8', water: 1, name: 'Storm cloud' },
+  snow:    { color: '#DCEEF7', water: 2, name: 'Snow cloud' },
+  sun:     { color: '#FFC93C', water: 1, name: 'Sun cloud' },
+  rainbow: { color: '#FF7EA8', water: 2, name: 'Rainbow cloud' },
+};
+const BASIC = ['cumulus', 'rain', 'storm', 'snow', 'sun'];
+
+const colsIn = (r) => (r % 2 === 0 ? 9 : 8);
+const cx = (r, c) => LEFT + c * CW + (r % 2 ? CW / 2 : 0);
+const cy = (r) => TOP + r * RH;
+
+const NEI_EVEN = [[0, -1], [0, 1], [-1, -1], [-1, 0], [1, -1], [1, 0]];
+const NEI_ODD = [[0, -1], [0, 1], [-1, 0], [-1, 1], [1, 0], [1, 1]];
+
+function createCloudBarrage() {
+  const plants = [
+    { sp: 'cactus', need: SPECIES.cactus.water },
+    { sp: 'sunflower', need: SPECIES.sunflower.water },
+    { sp: 'fern', need: SPECIES.fern.water },
+    { sp: 'rose', need: SPECIES.rose.water },
+    { sp: 'oak', need: SPECIES.oak.water },
+  ].map((p, i) => ({ ...p, water: 0, x: 48 + i * 96, done: false, flash: 0 }));
+
+  const g = {
+    grid: [],
+    drops: [],
+    shot: null,
+    next: pick(BASIC),
+    current: pick(BASIC),
+    angle: -Math.PI / 2,
+    shots: SHOTS,
+    score: 0,
+    delivered: 0,
+    wasted: 0,
+    sunBonus: 0,
+    plants,
+    fx: new Particles(),
+    floats: new Floaters(),
+    t: 0,
+    over: false,
+    won: false,
+    reason: '',
+    shake: 0,
+    sinceDrop: 0,
+    message: '',
+    messageT: 0,
+  };
+
+  // starting sky: 5 rows
+  for (let r = 0; r < 5; r++) {
+    const row = [];
+    for (let c = 0; c < colsIn(r); c++) {
+      row.push(Math.random() < 0.92 ? { type: weighted(), frozen: 0 } : null);
+    }
+    g.grid.push(row);
+  }
+
+  function weighted() {
+    const roll = Math.random();
+    if (roll < 0.40) return 'cumulus';
+    if (roll < 0.66) return 'rain';
+    if (roll < 0.80) return 'storm';
+    if (roll < 0.91) return 'snow';
+    if (roll < 0.985) return 'sun';
+    return 'rainbow';
+  }
+
+  const cell = (r, c) => (g.grid[r] && g.grid[r][c]) || null;
+
+  function neighbours(r, c) {
+    const offs = r % 2 === 0 ? NEI_EVEN : NEI_ODD;
+    const out = [];
+    for (const [dr, dc] of offs) {
+      const nr = r + dr, nc = c + dc;
+      if (nr < 0 || nr >= g.grid.length) continue;
+      if (nc < 0 || nc >= colsIn(nr)) continue;
+      out.push([nr, nc]);
+    }
+    return out;
+  }
+
+  function pickShotType() {
+    const present = new Set();
+    g.grid.forEach((row) => row.forEach((c) => c && present.add(c.type)));
+    const pool = BASIC.filter((t) => present.has(t));
+    if (!pool.length) return 'rainbow';
+    return Math.random() < 0.06 ? 'rainbow' : pick(pool);
+  }
+
+  function fire() {
+    if (g.shot || g.over) return;
+    g.shot = {
+      x: LAUNCH.x, y: LAUNCH.y,
+      vx: Math.cos(g.angle) * 620, vy: Math.sin(g.angle) * 620,
+      type: g.current,
+    };
+    g.current = g.next;
+    g.next = pickShotType();
+    g.shots -= 1;
+  }
+
+  function snap(px, py) {
+    let best = null, bd = 1e9;
+    const maxR = g.grid.length + 1;
+    for (let r = 0; r < maxR; r++) {
+      if (!g.grid[r]) g.grid[r] = new Array(colsIn(r)).fill(null);
+      for (let c = 0; c < colsIn(r); c++) {
+        if (g.grid[r][c]) continue;
+        const touching = r === 0 || neighbours(r, c).some(([nr, nc]) => cell(nr, nc));
+        if (!touching) continue;
+        const d = Math.hypot(cx(r, c) - px, cy(r) - py);
+        if (d < bd) { bd = d; best = [r, c]; }
+      }
+    }
+    return best;
+  }
+
+  function matchGroup(r, c) {
+    const type = cell(r, c).type;
+    const seen = new Set([`${r},${c}`]);
+    const stack = [[r, c]];
+    const group = [[r, c]];
+    while (stack.length) {
+      const [ar, ac] = stack.pop();
+      for (const [nr, nc] of neighbours(ar, ac)) {
+        const k = `${nr},${nc}`;
+        if (seen.has(k)) continue;
+        const cl = cell(nr, nc);
+        if (!cl || cl.frozen > 0) continue;
+        const compatible = cl.type === type || cl.type === 'rainbow' || type === 'rainbow';
+        if (!compatible) continue;
+        seen.add(k); stack.push([nr, nc]); group.push([nr, nc]);
+      }
+    }
+    return group;
+  }
+
+  function rainFrom(x, y, type) {
+    const amount = TYPES[type].water;
+    for (let i = 0; i < amount; i++) {
+      g.drops.push({ x: x + (Math.random() - 0.5) * 26, y: y + i * 8, vy: 180 + Math.random() * 90, type });
+    }
+    if (type === 'sun') { g.sunBonus += 3; g.score += 30; g.floats.add(x, y, '+3 sun', PALETTE.pollen, 15); }
+  }
+
+  function pop(list, chained = false) {
+    const seen = new Set();
+    const queue = [...list];
+    while (queue.length) {
+      const [r, c] = queue.shift();
+      const k = `${r},${c}`;
+      if (seen.has(k)) continue;
+      const cl = cell(r, c);
+      if (!cl) continue;
+      seen.add(k);
+      g.grid[r][c] = null;
+      const x = cx(r, c), y = cy(r);
+      g.fx.burst(x, y, TYPES[cl.type].color, 10, 110, 0.5);
+      rainFrom(x, y, cl.type);
+      g.score += chained ? 8 : 12;
+
+      if (cl.type === 'storm') {
+        g.shake = 0.28;
+        for (const [nr, nc] of neighbours(r, c)) if (cell(nr, nc)) queue.push([nr, nc]);
+      }
+      if (cl.type === 'snow') {
+        for (const [nr, nc] of neighbours(r, c)) {
+          const n = cell(nr, nc);
+          if (n) n.frozen = 3;
+        }
+      }
+    }
+    return seen.size;
+  }
+
+  function dropFloaters() {
+    // anything not connected to the ceiling falls, and falling clouds still rain
+    const keep = new Set();
+    const stack = [];
+    for (let c = 0; c < colsIn(0); c++) if (cell(0, c)) { stack.push([0, c]); keep.add(`0,${c}`); }
+    while (stack.length) {
+      const [r, c] = stack.pop();
+      for (const [nr, nc] of neighbours(r, c)) {
+        const k = `${nr},${nc}`;
+        if (keep.has(k) || !cell(nr, nc)) continue;
+        keep.add(k); stack.push([nr, nc]);
+      }
+    }
+    let n = 0;
+    for (let r = 0; r < g.grid.length; r++) {
+      for (let c = 0; c < colsIn(r); c++) {
+        if (cell(r, c) && !keep.has(`${r},${c}`)) {
+          const cl = g.grid[r][c];
+          g.grid[r][c] = null;
+          rainFrom(cx(r, c), cy(r), cl.type);
+          g.fx.burst(cx(r, c), cy(r), TYPES[cl.type].color, 6, 80, 0.5);
+          g.score += 16;
+          n++;
+        }
+      }
+    }
+    if (n) { g.message = `${n} clouds cut loose`; g.messageT = 1.6; g.score += n * 4; }
+  }
+
+  function descend() {
+    g.grid.unshift(new Array(colsIn(0)).fill(null).map(() => (Math.random() < 0.85 ? { type: weighted(), frozen: 0 } : null)));
+    // parity flipped for every row, so re-pack rows to their new width
+    for (let r = 0; r < g.grid.length; r++) {
+      const want = colsIn(r);
+      while (g.grid[r].length < want) g.grid[r].push(null);
+      if (g.grid[r].length > want) g.grid[r].length = want;
+    }
+    g.message = 'The sky rolls in';
+    g.messageT = 1.6;
+  }
+
+  function place(r, c, type) {
+    g.grid[r][c] = { type, frozen: 0 };
+    const group = matchGroup(r, c);
+    if (group.length >= 3) {
+      const popped = pop(group);
+      g.score += Math.max(0, popped - 3) * 14;
+      if (popped >= 5) { g.message = `${popped}-cloud burst`; g.messageT = 1.4; }
+      dropFloaters();
+    }
+    g.grid.forEach((row) => row.forEach((cl) => { if (cl && cl.frozen > 0) cl.frozen -= 1; }));
+
+    g.sinceDrop += 1;
+    if (g.sinceDrop >= 6) { g.sinceDrop = 0; descend(); }
+
+    for (let r2 = 0; r2 < g.grid.length; r2++) {
+      for (let c2 = 0; c2 < colsIn(r2); c2++) {
+        if (cell(r2, c2) && cy(r2) + R > GARDEN_Y) { end(false, 'The clouds smothered the garden.'); return; }
+      }
+    }
+    if (g.shots <= 0 && !g.plants.every((p) => p.done)) {
+      // let the last drops land before judging
+      g.graceT = 2.2;
+    }
+  }
+
+  function end(won, reason) {
+    if (g.over) return;
+    g.won = won; g.reason = reason; g.over = true;
+  }
+
+  g.graceT = null;
+
+  g.update = (dt) => {
+    g.t += dt;
+    g.shake = Math.max(0, g.shake - dt);
+    g.messageT = Math.max(0, g.messageT - dt);
+    g.fx.update(dt, 60);
+    g.floats.update(dt);
+    g.plants.forEach((p) => (p.flash = Math.max(0, p.flash - dt)));
+
+    if (g.shot) {
+      const s = g.shot;
+      const steps = 4;
+      for (let i = 0; i < steps && g.shot; i++) {
+        s.x += (s.vx * dt) / steps;
+        s.y += (s.vy * dt) / steps;
+        if (s.x < R + 4) { s.x = R + 4; s.vx = Math.abs(s.vx); }
+        if (s.x > VW - R - 4) { s.x = VW - R - 4; s.vx = -Math.abs(s.vx); }
+
+        let hit = s.y <= TOP - 2;
+        if (!hit) {
+          outer:
+          for (let r = 0; r < g.grid.length; r++) {
+            for (let c = 0; c < colsIn(r); c++) {
+              if (!cell(r, c)) continue;
+              if (Math.hypot(cx(r, c) - s.x, cy(r) - s.y) < R * 1.85) { hit = true; break outer; }
+            }
+          }
+        }
+        if (hit) {
+          const spot = snap(s.x, s.y);
+          const type = s.type;
+          g.shot = null;
+          if (spot) place(spot[0], spot[1], type);
+          break;
+        }
+        if (s.y < -40) { g.shot = null; }
+      }
+    }
+
+    // rain falls and waters whichever plant it lands on
+    for (let i = g.drops.length - 1; i >= 0; i--) {
+      const d = g.drops[i];
+      d.vy += 260 * dt;
+      d.y += d.vy * dt;
+      if (d.y >= SOIL_Y - 26) {
+        g.drops.splice(i, 1);
+        const p = g.plants.find((pl) => Math.abs(pl.x - d.x) < 46);
+        if (p && !p.done) {
+          p.water += 1;
+          p.flash = 0.4;
+          g.delivered += 1;
+          g.score += 14;
+          g.fx.burst(d.x, SOIL_Y - 20, PALETTE.rain, 6, 70, 0.4);
+          if (p.water >= p.need) {
+            p.done = true;
+            p.water = p.need;
+            g.score += 90;
+            g.floats.add(p.x, SOIL_Y - 90, 'In bloom!', PALETTE.petal, 17);
+            g.fx.burst(p.x, SOIL_Y - 70, PALETTE.petal, 26, 180, 0.9);
+          }
+        } else {
+          g.wasted += 1;
+          if (p && p.done) g.floats.add(d.x, SOIL_Y - 40, 'already full', 'rgba(234,242,226,0.6)', 12);
+        }
+      }
+    }
+
+    if (g.plants.every((p) => p.done)) {
+      g.score += g.shots * 30;
+      end(true, 'Every plant reached full bloom.');
+    }
+
+    if (g.graceT !== null) {
+      g.graceT -= dt;
+      if (g.graceT <= 0 && !g.over) end(false, 'Out of droplets before the garden was watered.');
+    }
+  };
+
+  g.input = (input) => {
+    if (g.over) return;
+    const px = input.pointer.x, py = input.pointer.y;
+    if (py < LAUNCH.y - 10) {
+      g.angle = Math.atan2(py - LAUNCH.y, px - LAUNCH.x);
+    }
+    if (input.key('arrowleft', 'a')) g.angle -= 1.8 * (1 / 60);
+    if (input.key('arrowright', 'd')) g.angle += 1.8 * (1 / 60);
+    g.angle = clamp(g.angle, -Math.PI + 0.30, -0.30);
+    if (input.pointer.justUp || input.hit(' ', 'arrowup', 'w')) fire();
+  };
+
+  g.draw = (ctx) => {
+    ctx.save();
+    if (g.shake > 0) ctx.translate((Math.random() - 0.5) * 5, (Math.random() - 0.5) * 5);
+
+    // sky
+    const sky = ctx.createLinearGradient(0, 46, 0, GARDEN_Y);
+    sky.addColorStop(0, '#1E3A4A');
+    sky.addColorStop(1, '#2A4A46');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 46, VW, GARDEN_Y - 46);
+
+    // garden
+    const grd = ctx.createLinearGradient(0, GARDEN_Y, 0, VH);
+    grd.addColorStop(0, '#254036');
+    grd.addColorStop(1, PALETTE.ink);
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, GARDEN_Y, VW, VH - GARDEN_Y);
+    ctx.fillStyle = '#3A2A1E';
+    ctx.fillRect(0, SOIL_Y, VW, VH - SOIL_Y);
+    ctx.fillStyle = 'rgba(139,224,106,0.15)';
+    ctx.fillRect(0, SOIL_Y, VW, 3);
+
+    // aim guide
+    if (!g.shot) {
+      let ax = LAUNCH.x, ay = LAUNCH.y, dx = Math.cos(g.angle), dy = Math.sin(g.angle);
+      ctx.strokeStyle = 'rgba(99,199,240,0.35)';
+      ctx.lineWidth = 2; ctx.setLineDash([6, 8]);
+      ctx.beginPath(); ctx.moveTo(ax, ay);
+      for (let i = 0; i < 260; i++) {
+        ax += dx * 5; ay += dy * 5;
+        if (ax < R + 4 || ax > VW - R - 4) { dx = -dx; }
+        if (ay < TOP) break;
+        ctx.lineTo(ax, ay);
+      }
+      ctx.stroke(); ctx.setLineDash([]);
+    }
+
+    // clouds
+    for (let r = 0; r < g.grid.length; r++) {
+      for (let c = 0; c < colsIn(r); c++) {
+        const cl = cell(r, c);
+        if (!cl) continue;
+        drawCloud(ctx, cx(r, c), cy(r), cl, g.t, r + c);
+      }
+    }
+
+    // plants + water meters
+    for (const p of g.plants) {
+      const frac = p.water / p.need;
+      const stage = p.done ? 5 : Math.min(4, Math.floor(frac * 5));
+      drawPlant(ctx, p.x, SOIL_Y, 132, p.sp, stage, g.t);
+      const bw = 66, bx = p.x - bw / 2, by = SOIL_Y + 16;
+      ctx.fillStyle = 'rgba(18,33,26,0.75)';
+      rr(ctx, bx, by, bw, 12, 6); ctx.fill();
+      ctx.fillStyle = p.done ? PALETTE.chloro : PALETTE.rain;
+      rr(ctx, bx, by, Math.max(4, bw * Math.min(1, frac)), 12, 6); ctx.fill();
+      if (p.flash > 0) {
+        ctx.strokeStyle = `rgba(234,242,226,${p.flash * 2})`;
+        ctx.lineWidth = 2; rr(ctx, bx - 2, by - 2, bw + 4, 16, 8); ctx.stroke();
+      }
+      text(ctx, `${p.water}/${p.need}`, p.x, by + 28, { size: 13, color: p.done ? PALETTE.chloro : PALETTE.paper, align: 'center' });
+      text(ctx, SPECIES[p.sp].name, p.x, by + 43, { size: 10, color: 'rgba(234,242,226,0.55)', align: 'center', weight: 600, font: 'Karla, sans-serif' });
+    }
+
+    // rain
+    ctx.strokeStyle = PALETTE.rain;
+    ctx.lineWidth = 2.4;
+    for (const d of g.drops) {
+      ctx.strokeStyle = TYPES[d.type].color;
+      ctx.beginPath(); ctx.moveTo(d.x, d.y); ctx.lineTo(d.x, d.y + 9); ctx.stroke();
+    }
+
+    // launcher
+    ctx.save();
+    ctx.translate(LAUNCH.x, LAUNCH.y);
+    ctx.rotate(g.angle + Math.PI / 2);
+    ctx.fillStyle = PALETTE.moss;
+    rr(ctx, -9, -34, 18, 40, 8); ctx.fill();
+    ctx.fillStyle = PALETTE.chloroDk;
+    rr(ctx, -6, -38, 12, 16, 6); ctx.fill();
+    ctx.restore();
+    ctx.fillStyle = PALETTE.moss;
+    circle(ctx, LAUNCH.x, LAUNCH.y, 20); ctx.fill();
+
+    if (!g.shot) drawCloud(ctx, LAUNCH.x, LAUNCH.y, { type: g.current, frozen: 0 }, g.t, 0, 0.8);
+    drawCloud(ctx, LAUNCH.x + 62, LAUNCH.y + 12, { type: g.next, frozen: 0 }, g.t, 3, 0.55);
+    text(ctx, 'next', LAUNCH.x + 62, LAUNCH.y + 38, { size: 10, color: 'rgba(234,242,226,0.5)', align: 'center', font: 'Karla, sans-serif' });
+
+    if (g.shot) drawCloud(ctx, g.shot.x, g.shot.y, { type: g.shot.type, frozen: 0 }, g.t, 0);
+
+    g.fx.draw(ctx);
+    g.floats.draw(ctx);
+    ctx.restore();
+
+    hudBar(ctx, { score: g.score, label: 'WATER THE GARDEN', right: `${g.shots} droplets` });
+    if (g.messageT > 0) {
+      ctx.globalAlpha = Math.min(1, g.messageT);
+      text(ctx, g.message, VW / 2, GARDEN_Y - 14, { size: 17, color: PALETTE.pollen, align: 'center' });
+      ctx.globalAlpha = 1;
+    }
+  };
+
+  g.result = () => ({
+    score: g.score,
+    sun: Math.max(1, Math.floor(g.score * SUN_RATE.clouds)) + g.sunBonus,
+    reason: g.reason,
+    stats: [
+      ['Plants bloomed', `${g.plants.filter((p) => p.done).length} / 5`],
+      ['Water delivered', g.delivered],
+      ['Rain wasted', g.wasted],
+    ],
+    lesson: 'Same rain, different plants: a cactus needed 2 and the oak needed 15. Water requirement is a species trait.',
+  });
+
+  return g;
+}
+
+function drawCloud(ctx, x, y, cl, t, seed = 0, scale = 1) {
+  const type = TYPES[cl.type];
+  const r = R * scale;
+  const bob = Math.sin(t * 1.6 + seed) * 1.5 * scale;
+  ctx.save();
+  ctx.translate(x, y + bob);
+
+  if (cl.type === 'rainbow') {
+    const grad = ctx.createLinearGradient(-r, -r, r, r);
+    ['#FF7EA8', '#FFC93C', '#8BE06A', '#63C7F0'].forEach((c, i, a) => grad.addColorStop(i / (a.length - 1), c));
+    ctx.fillStyle = grad;
+  } else {
+    ctx.fillStyle = type.color;
+  }
+  circle(ctx, -r * 0.45, r * 0.12, r * 0.62); ctx.fill();
+  circle(ctx, r * 0.45, r * 0.12, r * 0.58); ctx.fill();
+  circle(ctx, 0, -r * 0.22, r * 0.78); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.18)';
+  circle(ctx, -r * 0.2, -r * 0.4, r * 0.32); ctx.fill();
+
+  if (cl.type === 'storm') {
+    ctx.fillStyle = PALETTE.pollen;
+    ctx.beginPath();
+    ctx.moveTo(-3 * scale, -6 * scale); ctx.lineTo(4 * scale, -1 * scale);
+    ctx.lineTo(0, 0); ctx.lineTo(5 * scale, 8 * scale);
+    ctx.lineTo(-4 * scale, 1 * scale); ctx.lineTo(1 * scale, 0);
+    ctx.closePath(); ctx.fill();
+  }
+  if (cl.type === 'sun') {
+    ctx.strokeStyle = '#FFF3C4'; ctx.lineWidth = 2 * scale;
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2 + t * 0.6;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a) * r * 0.5, Math.sin(a) * r * 0.5);
+      ctx.lineTo(Math.cos(a) * r * 0.78, Math.sin(a) * r * 0.78);
+      ctx.stroke();
+    }
+  }
+  if (cl.type === 'rain') {
+    ctx.strokeStyle = '#BEE9FF'; ctx.lineWidth = 2 * scale;
+    for (let i = -1; i <= 1; i++) {
+      ctx.beginPath();
+      ctx.moveTo(i * 7 * scale, r * 0.5);
+      ctx.lineTo(i * 7 * scale - 2, r * 0.85);
+      ctx.stroke();
+    }
+  }
+  if (cl.type === 'snow') {
+    ctx.strokeStyle = '#7FB8D8'; ctx.lineWidth = 1.6 * scale;
+    for (let i = 0; i < 3; i++) {
+      const a = (i / 3) * Math.PI;
+      ctx.beginPath();
+      ctx.moveTo(-Math.cos(a) * r * 0.42, -Math.sin(a) * r * 0.42);
+      ctx.lineTo(Math.cos(a) * r * 0.42, Math.sin(a) * r * 0.42);
+      ctx.stroke();
+    }
+  }
+  if (cl.frozen > 0) {
+    ctx.fillStyle = 'rgba(220,238,247,0.55)';
+    circle(ctx, 0, 0, r * 0.95); ctx.fill();
+    ctx.strokeStyle = '#DCEEF7'; ctx.lineWidth = 2;
+    circle(ctx, 0, 0, r * 0.95); ctx.stroke();
+  }
+  ctx.restore();
+}
+return createCloudBarrage;
+})();
+
+/* ===== js/games/bee-rush.js ===== */
+const createBeeRush = (() => {
+// bee-rush.js — Endless runner. You are a bee. Touching a flower pollinates it and it
+// blooms instantly behind you. Consecutive hits build a pollination combo; the Bee Swarm
+// booster splits you into 3 then 5 bees so you cover lanes you are not flying in.
+
+
+const LANES = [96, 240, 384];
+const BEE_Y = 560;
+const GROUND = 620;
+
+const OBSTACLES = {
+  web:       { name: 'Spider web', h: 54, ground: false, color: 'rgba(234,242,226,0.55)' },
+  raindrop:  { name: 'Raindrop',   h: 40, ground: false, color: PALETTE.rain },
+  bird:      { name: 'Bird',       h: 46, ground: false, color: '#8FA9C9' },
+  branch:    { name: 'Branch',     h: 34, ground: true,  color: PALETTE.bark },
+  sprinkler: { name: 'Sprinkler',  h: 44, ground: true,  color: '#63C7F0' },
+  leaf:      { name: 'Falling leaf', h: 36, ground: false, color: '#C6E86A' },
+  structure: { name: 'Trellis',    h: 40, ground: true,  color: '#6E4629' },
+};
+
+const BOOSTS = {
+  life:    { name: 'Extra life',       color: PALETTE.petal },
+  shield:  { name: 'Pollen shield',    color: PALETTE.pollen },
+  speed:   { name: 'Bee speed',        color: '#FF9F45' },
+  magnet:  { name: 'Pollen magnet',    color: '#C79BE8' },
+  superp:  { name: 'Super pollination', color: PALETTE.chloro },
+  swarm:   { name: 'Bee swarm',        color: PALETTE.pollen },
+};
+
+function createBeeRush() {
+  const g = {
+    lane: 1,
+    x: LANES[1],
+    hop: 0,
+    speed: 300,
+    dist: 0,
+    score: 0,
+    combo: 0,
+    bestCombo: 0,
+    pollinated: 0,
+    lives: 2,
+    shield: false,
+    magnetT: 0,
+    superT: 0,
+    speedT: 0,
+    swarm: 1,
+    swarmT: 0,
+    invuln: 0,
+    items: [],
+    spawnT: 0,
+    fx: new Particles(),
+    floats: new Floaters(),
+    scroll: 0,
+    t: 0,
+    over: false,
+    reason: '',
+    shake: 0,
+    banner: '',
+    bannerT: 0,
+  };
+
+  const mult = () => (g.combo >= 15 ? 4 : g.combo >= 10 ? 3 : g.combo >= 5 ? 2 : 1);
+
+  function say(msg, color = PALETTE.pollen) { g.banner = msg; g.bannerT = 1.5; g.bannerColor = color; }
+
+  function spawn() {
+    const laneSet = [0, 1, 2];
+    const roll = Math.random();
+
+    if (roll < 0.10) {
+      const type = pick(Object.keys(BOOSTS));
+      g.items.push({ kind: 'boost', type, lane: pick(laneSet), y: -50, wob: Math.random() * 6 });
+      return;
+    }
+
+    // Never fill all three lanes with obstacles — always leave a way through.
+    const blocked = Math.random() < 0.45 ? 2 : 1;
+    const shuffled = laneSet.sort(() => Math.random() - 0.5);
+    const obsLanes = shuffled.slice(0, blocked);
+    const freeLanes = shuffled.slice(blocked);
+
+    for (const l of obsLanes) {
+      g.items.push({ kind: 'obstacle', type: pick(Object.keys(OBSTACLES)), lane: l, y: -50, wob: Math.random() * 6 });
+    }
+    for (const l of freeLanes) {
+      if (Math.random() < 0.85) {
+        g.items.push({ kind: 'flower', lane: l, y: -50 - rand(0, 40), hue: pick([PALETTE.petal, PALETTE.pollen, '#FF9F45', '#C79BE8']), wob: Math.random() * 6 });
+      }
+    }
+  }
+
+  function hitObstacle(item) {
+    if (g.invuln > 0) return;
+    if (g.shield) {
+      g.shield = false;
+      g.invuln = 1.0;
+      say('Shield absorbed it', PALETTE.pollen);
+      g.fx.burst(g.x, BEE_Y, PALETTE.pollen, 18, 160);
+      item.dead = true;
+      return;
+    }
+    if (g.swarm > 1) {
+      g.swarm = Math.max(1, g.swarm - 2);
+      g.invuln = 1.0;
+      say('Lost part of the swarm', PALETTE.danger);
+      g.fx.burst(g.x, BEE_Y, PALETTE.pollen, 20, 180);
+      item.dead = true;
+      return;
+    }
+    g.lives -= 1;
+    g.combo = 0;
+    g.shake = 0.4;
+    g.invuln = 1.4;
+    g.fx.burst(g.x, BEE_Y, PALETTE.danger, 24, 200);
+    item.dead = true;
+    if (g.lives <= 0) { g.over = true; g.reason = `${OBSTACLES[item.type].name} ended the run.`; }
+    else say(`${g.lives} ${g.lives === 1 ? 'life' : 'lives'} left`, PALETTE.danger);
+  }
+
+  function pollinate(item, byLane) {
+    item.dead = true;
+    g.combo += 1;
+    g.bestCombo = Math.max(g.bestCombo, g.combo);
+    g.pollinated += 1;
+    const base = g.superT > 0 ? 40 : 20;
+    const pts = base * mult();
+    g.score += pts;
+    const px = LANES[byLane];
+    g.floats.add(px, item.y, `+${pts}`, item.hue);
+    g.fx.burst(px, item.y, item.hue, 14, 140, 0.6);
+    if (g.combo === 5) say('Pollination combo  x2', PALETTE.chloro);
+    if (g.combo === 10) say('Pollination combo  x3', PALETTE.pollen);
+    if (g.combo === 15) say('SUPER POLLINATION  x4', PALETTE.petal);
+  }
+
+  function takeBoost(item) {
+    item.dead = true;
+    const c = BOOSTS[item.type].color;
+    g.fx.burst(LANES[item.lane], item.y, c, 22, 180);
+    say(BOOSTS[item.type].name, c);
+    if (item.type === 'life') g.lives += 1;
+    if (item.type === 'shield') g.shield = true;
+    if (item.type === 'speed') g.speedT = 6;
+    if (item.type === 'magnet') g.magnetT = 8;
+    if (item.type === 'superp') g.superT = 7;
+    if (item.type === 'swarm') { g.swarm = g.swarm === 1 ? 3 : 5; g.swarmT = 9; }
+  }
+
+  g.update = (dt) => {
+    g.t += dt;
+    g.shake = Math.max(0, g.shake - dt);
+    g.bannerT = Math.max(0, g.bannerT - dt);
+    g.invuln = Math.max(0, g.invuln - dt);
+    g.magnetT = Math.max(0, g.magnetT - dt);
+    g.superT = Math.max(0, g.superT - dt);
+    g.speedT = Math.max(0, g.speedT - dt);
+    if (g.swarmT > 0) { g.swarmT -= dt; if (g.swarmT <= 0) g.swarm = 1; }
+    if (g.hop > 0) g.hop = Math.max(0, g.hop - dt);
+
+    g.fx.update(dt, 30);
+    g.floats.update(dt);
+
+    const boost = g.speedT > 0 ? 1.45 : 1;
+    g.speed = Math.min(760, 300 + g.dist * 0.030) * boost;
+    g.dist += g.speed * dt;
+    g.scroll = (g.scroll + g.speed * dt) % 80;
+    g.score += g.speed * dt * 0.012;
+
+    g.x += (LANES[g.lane] - g.x) * Math.min(1, dt * 16);
+
+    g.spawnT -= dt;
+    if (g.spawnT <= 0) { spawn(); g.spawnT = clamp(0.95 - g.dist * 0.000035, 0.42, 1.0); }
+
+    // lanes the swarm covers
+    const covered = g.swarm >= 5 ? [0, 1, 2] : g.swarm >= 3 ? [g.lane - 1, g.lane, g.lane + 1].filter((l) => l >= 0 && l < 3) : [g.lane];
+
+    for (const it of g.items) {
+      it.y += g.speed * dt;
+
+      if (g.magnetT > 0 && it.kind === 'flower' && it.lane !== g.lane && it.y > 260 && it.y < BEE_Y) {
+        it.lane = it.lane < g.lane ? it.lane + 1 : it.lane - 1;
+      }
+
+      const near = Math.abs(it.y - BEE_Y) < 34;
+      if (!near || it.dead) continue;
+
+      if (it.kind === 'flower' && covered.includes(it.lane)) pollinate(it, it.lane);
+      else if (it.kind === 'boost' && covered.includes(it.lane)) takeBoost(it);
+      else if (it.kind === 'obstacle' && it.lane === g.lane) {
+        const isGround = OBSTACLES[it.type].ground;
+        if (isGround && g.hop > 0) { /* hopped it */ }
+        else hitObstacle(it);
+      }
+    }
+
+    g.items = g.items.filter((it) => {
+      if (it.dead) return false;
+      if (it.y > VH + 60) {
+        if (it.kind === 'flower') g.combo = 0;   // a missed flower breaks the chain
+        return false;
+      }
+      return true;
+    });
+  };
+
+  g.input = (input) => {
+    if (input.hit('arrowleft', 'a') || input.swipe === 'left') g.lane = Math.max(0, g.lane - 1);
+    if (input.hit('arrowright', 'd') || input.swipe === 'right') g.lane = Math.min(2, g.lane + 1);
+    if (input.hit('arrowup', 'w', ' ') || input.swipe === 'up') { if (g.hop <= 0) g.hop = 0.55; }
+  };
+
+  g.draw = (ctx) => {
+    ctx.save();
+    if (g.shake > 0) ctx.translate((Math.random() - 0.5) * 7, (Math.random() - 0.5) * 7);
+
+    const sky = ctx.createLinearGradient(0, 0, 0, VH);
+    sky.addColorStop(0, '#2B4C5E');
+    sky.addColorStop(0.55, '#2C5340');
+    sky.addColorStop(1, '#1B3026');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, VW, VH);
+
+    // lane beds
+    for (let i = 0; i < 3; i++) {
+      ctx.fillStyle = i % 2 ? 'rgba(139,224,106,0.05)' : 'rgba(139,224,106,0.09)';
+      ctx.fillRect(LANES[i] - 66, 46, 132, VH - 46);
+    }
+    ctx.strokeStyle = 'rgba(234,242,226,0.10)';
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 2; i++) {
+      const x = (LANES[i] + LANES[i + 1]) / 2;
+      ctx.setLineDash([26, 34]);
+      ctx.lineDashOffset = -g.scroll;
+      ctx.beginPath(); ctx.moveTo(x, 46); ctx.lineTo(x, VH); ctx.stroke();
+    }
+    ctx.setLineDash([]);
+
+    // speed streaks
+    ctx.strokeStyle = 'rgba(234,242,226,0.07)';
+    for (let i = 0; i < 14; i++) {
+      const y = ((i * 80) + g.scroll * 2) % (VH + 80) - 40;
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(VW, y); ctx.stroke();
+    }
+
+    for (const it of g.items) {
+      const x = LANES[it.lane];
+      if (it.kind === 'flower') drawFlower(ctx, x, it.y, it.hue, g.t + it.wob);
+      else if (it.kind === 'boost') drawBoost(ctx, x, it.y, it.type, g.t + it.wob);
+      else drawObstacle(ctx, x, it.y, it.type, g.t + it.wob);
+    }
+
+    // bees
+    const lift = Math.sin((1 - g.hop / 0.55) * Math.PI) * 34 * (g.hop > 0 ? 1 : 0);
+    const positions = g.swarm >= 5
+      ? [[LANES[0], BEE_Y + 22], [LANES[1], BEE_Y + 22], [LANES[2], BEE_Y + 22], [g.x - 30, BEE_Y - 26], [g.x + 30, BEE_Y - 26]]
+      : g.swarm >= 3
+        ? [[g.x - 62, BEE_Y + 14], [g.x + 62, BEE_Y + 14], [g.x, BEE_Y]]
+        : [[g.x, BEE_Y]];
+
+    if (g.hop > 0) {
+      ctx.fillStyle = 'rgba(0,0,0,0.25)';
+      ctx.beginPath(); ctx.ellipse(g.x, BEE_Y + 26, 16, 5, 0, 0, Math.PI * 2); ctx.fill();
+    }
+    const blink = g.invuln > 0 && Math.floor(g.t * 14) % 2 === 0;
+    ctx.globalAlpha = blink ? 0.35 : 1;
+    for (const [bx, by] of positions) drawBee(ctx, bx, by - lift, g.t, g.shield);
+    ctx.globalAlpha = 1;
+
+    g.fx.draw(ctx);
+    g.floats.draw(ctx);
+    ctx.restore();
+
+    hudBar(ctx, {
+      score: Math.floor(g.score),
+      label: `${Math.floor(g.dist / 10)}m`,
+      right: `${'♥'.repeat(Math.min(5, g.lives))}${g.shield ? '  ⬡' : ''}`,
+    });
+
+    if (g.combo >= 2) {
+      const m = mult();
+      ctx.fillStyle = m >= 3 ? PALETTE.petal : PALETTE.chloro;
+      rr(ctx, VW / 2 - 62, 54, 124, 26, 13); ctx.fill();
+      text(ctx, `${g.combo} in a row  ×${m}`, VW / 2, 72, { size: 14, color: PALETTE.ink, align: 'center' });
+    }
+    if (g.swarm > 1) text(ctx, `SWARM ×${g.swarm}`, VW - 14, 100, { size: 13, color: PALETTE.pollen, align: 'right' });
+    if (g.superT > 0) text(ctx, 'SUPER POLLINATION', VW - 14, 118, { size: 13, color: PALETTE.chloro, align: 'right' });
+    if (g.magnetT > 0) text(ctx, 'MAGNET', VW - 14, 136, { size: 13, color: '#C79BE8', align: 'right' });
+
+    if (g.bannerT > 0) {
+      ctx.globalAlpha = Math.min(1, g.bannerT);
+      text(ctx, g.banner, VW / 2, 130, { size: 20, color: g.bannerColor || PALETTE.pollen, align: 'center' });
+      ctx.globalAlpha = 1;
+    }
+  };
+
+  g.result = () => ({
+    score: Math.floor(g.score),
+    sun: Math.max(1, Math.floor(g.score * SUN_RATE.bee)),
+    reason: g.reason || 'Run complete.',
+    stats: [
+      ['Flowers pollinated', g.pollinated],
+      ['Best combo', g.bestCombo],
+      ['Distance', `${Math.floor(g.dist / 10)} m`],
+    ],
+    lesson: 'The bee is not trying to pollinate. It wants nectar — pollen just sticks to it and rubs off on the next flower.',
+  });
+
+  return g;
+}
+
+function drawBee(ctx, x, y, t, shield) {
+  ctx.save();
+  ctx.translate(x, y);
+  const flap = Math.sin(t * 40) * 0.5;
+  if (shield) {
+    ctx.strokeStyle = 'rgba(255,201,60,0.8)';
+    ctx.lineWidth = 3;
+    circle(ctx, 0, 0, 26 + Math.sin(t * 6) * 2); ctx.stroke();
+  }
+  ctx.fillStyle = 'rgba(234,242,226,0.55)';
+  ctx.save(); ctx.rotate(-0.5 + flap);
+  ctx.beginPath(); ctx.ellipse(-4, -10, 13, 6, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+  ctx.save(); ctx.rotate(0.5 - flap);
+  ctx.beginPath(); ctx.ellipse(4, -10, 13, 6, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+
+  ctx.fillStyle = PALETTE.pollen;
+  ctx.beginPath(); ctx.ellipse(0, 0, 15, 12, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#3A2E12';
+  ctx.beginPath(); ctx.ellipse(-3, 0, 3.4, 11.4, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(5, 0, 3, 10, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#3A2E12';
+  circle(ctx, -11, -3, 2); ctx.fill();
+  ctx.restore();
+}
+
+function drawFlower(ctx, x, y, hue, t) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.strokeStyle = PALETTE.chloroDk; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(0, 6); ctx.lineTo(0, 30); ctx.stroke();
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * Math.PI * 2 + t * 0.6;
+    ctx.fillStyle = hue;
+    ctx.beginPath(); ctx.ellipse(Math.cos(a) * 12, Math.sin(a) * 12, 8, 8, 0, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.fillStyle = PALETTE.pollen; circle(ctx, 0, 0, 8); ctx.fill();
+  ctx.fillStyle = '#8A5A38'; circle(ctx, 0, 0, 4); ctx.fill();
+  ctx.restore();
+}
+
+function drawBoost(ctx, x, y, type, t) {
+  const c = BOOSTS[type].color;
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(Math.sin(t * 2) * 0.2);
+  ctx.fillStyle = 'rgba(18,33,26,0.8)';
+  circle(ctx, 0, 0, 21); ctx.fill();
+  ctx.strokeStyle = c; ctx.lineWidth = 3;
+  circle(ctx, 0, 0, 21); ctx.stroke();
+  const glyph = { life: '♥', shield: '⬡', speed: '»', magnet: '∪', superp: '✿', swarm: '≡' }[type];
+  text(ctx, glyph, 0, 7, { size: 20, color: c, align: 'center' });
+  ctx.restore();
+}
+
+function drawObstacle(ctx, x, y, type, t) {
+  const o = OBSTACLES[type];
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.fillStyle = o.color;
+  ctx.strokeStyle = o.color;
+
+  if (type === 'web') {
+    ctx.lineWidth = 1.6;
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2;
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(Math.cos(a) * 32, Math.sin(a) * 26); ctx.stroke();
+    }
+    for (let r = 10; r <= 30; r += 10) {
+      ctx.beginPath(); ctx.ellipse(0, 0, r, r * 0.82, 0, 0, Math.PI * 2); ctx.stroke();
+    }
+  } else if (type === 'raindrop') {
+    ctx.beginPath();
+    ctx.moveTo(0, -22); ctx.quadraticCurveTo(16, 4, 0, 20); ctx.quadraticCurveTo(-16, 4, 0, -22);
+    ctx.fill();
+  } else if (type === 'bird') {
+    ctx.lineWidth = 5; ctx.lineCap = 'round';
+    const f = Math.sin(t * 12) * 8;
+    ctx.beginPath();
+    ctx.moveTo(-26, 0 + f); ctx.quadraticCurveTo(-10, -12, 0, 0);
+    ctx.quadraticCurveTo(10, -12, 26, 0 + f);
+    ctx.stroke();
+    ctx.fillStyle = '#5F7796'; circle(ctx, 0, 2, 7); ctx.fill();
+  } else if (type === 'branch') {
+    rr(ctx, -46, -8, 92, 16, 8); ctx.fill();
+    ctx.fillStyle = PALETTE.chloroDk;
+    circle(ctx, -24, -12, 8); ctx.fill();
+    circle(ctx, 20, 12, 7); ctx.fill();
+  } else if (type === 'sprinkler') {
+    ctx.fillStyle = '#8FA9C9';
+    rr(ctx, -6, -4, 12, 26, 4); ctx.fill();
+    ctx.strokeStyle = PALETTE.rain; ctx.lineWidth = 3;
+    for (let i = -2; i <= 2; i++) {
+      ctx.beginPath();
+      ctx.moveTo(0, -4);
+      ctx.quadraticCurveTo(i * 16, -26 - Math.sin(t * 6) * 4, i * 30, -6);
+      ctx.stroke();
+    }
+  } else if (type === 'leaf') {
+    ctx.save(); ctx.rotate(Math.sin(t * 3) * 0.8);
+    ctx.beginPath();
+    ctx.moveTo(-24, 0); ctx.quadraticCurveTo(0, -20, 24, 0); ctx.quadraticCurveTo(0, 20, -24, 0);
+    ctx.fill(); ctx.restore();
+  } else {
+    ctx.fillStyle = '#6E4629';
+    for (let i = -1; i <= 1; i++) rr(ctx, i * 22 - 5, -18, 10, 40, 3), ctx.fill();
+    rr(ctx, -40, -6, 80, 9, 4); ctx.fill();
+  }
+  ctx.restore();
+}
+return createBeeRush;
+})();
+
+/* ===== js/games/seed-crush.js ===== */
+const createSeedCrush = (() => {
+// seed-crush.js — Match 3. Cleared seeds drop into the germination tray, and a seed
+// only counts as germinated once the tray has water, warmth and oxygen — the three real
+// requirements. Match 4 makes a sprout that clears a line; match 5 makes a taproot that
+// clears every seed of one kind.
+
+
+const COLS = 8, ROWS = 8, CELL = 56;
+const OX = 16, OY = 176;
+const MOVES = 26;
+
+const SEEDS = [
+  { id: 'sunflower', color: '#FFC93C', name: 'Sunflower' },
+  { id: 'bean',      color: '#8BE06A', name: 'Bean' },
+  { id: 'pumpkin',   color: '#FF9F45', name: 'Pumpkin' },
+  { id: 'corn',      color: '#F0E27A', name: 'Corn' },
+  { id: 'apple',     color: '#FF7EA8', name: 'Apple' },
+  { id: 'acorn',     color: '#B98453', name: 'Acorn' },
+];
+const byId = (id) => SEEDS.find((s) => s.id === id);
+
+let uid = 0;
+
+function createSeedCrush() {
+  const g = {
+    grid: [],
+    sel: null,
+    moves: MOVES,
+    score: 0,
+    cleared: 0,
+    cascade: 0,
+    bestCascade: 0,
+    phase: 'idle',
+    timer: 0,
+    fx: new Particles(),
+    floats: new Floaters(),
+    t: 0,
+    over: false,
+    reason: '',
+    shake: 0,
+    banner: '',
+    bannerT: 0,
+    swapBack: null,
+  };
+
+  const targets = [];
+  const chosen = SEEDS.slice().sort(() => Math.random() - 0.5).slice(0, 3);
+  chosen.forEach((s, i) => targets.push({ id: s.id, need: [14, 11, 9][i], got: 0 }));
+  g.targets = targets;
+
+  const at = (c, r) => (g.grid[r] ? g.grid[r][c] : null);
+
+  function newCell(type) {
+    return { type: type || pick(SEEDS).id, special: null, id: uid++, fall: 0, pop: 0, spawn: 1 };
+  }
+
+  // build a board with no starting matches
+  for (let r = 0; r < ROWS; r++) {
+    g.grid[r] = [];
+    for (let c = 0; c < COLS; c++) {
+      let cell;
+      let guard = 0;
+      do {
+        cell = newCell();
+        guard++;
+      } while (guard < 30 && makesRun(c, r, cell.type));
+      g.grid[r][c] = cell;
+    }
+  }
+
+  function makesRun(c, r, type) {
+    const l1 = at(c - 1, r), l2 = at(c - 2, r);
+    if (l1 && l2 && l1.type === type && l2.type === type) return true;
+    const u1 = at(c, r - 1), u2 = at(c, r - 2);
+    if (u1 && u2 && u1.type === type && u2.type === type) return true;
+    return false;
+  }
+
+  function findMatches() {
+    const marks = new Set();
+    const runs = [];
+    for (let r = 0; r < ROWS; r++) {
+      let run = 1;
+      for (let c = 1; c <= COLS; c++) {
+        const same = c < COLS && at(c, r) && at(c - 1, r) && at(c, r).type === at(c - 1, r).type;
+        if (same) run++;
+        else {
+          if (run >= 3) { const cells = []; for (let k = c - run; k < c; k++) { marks.add(`${k},${r}`); cells.push([k, r]); } runs.push({ cells, len: run, dir: 'h' }); }
+          run = 1;
+        }
+      }
+    }
+    for (let c = 0; c < COLS; c++) {
+      let run = 1;
+      for (let r = 1; r <= ROWS; r++) {
+        const same = r < ROWS && at(c, r) && at(c, r - 1) && at(c, r).type === at(c, r - 1).type;
+        if (same) run++;
+        else {
+          if (run >= 3) { const cells = []; for (let k = r - run; k < r; k++) { marks.add(`${c},${k}`); cells.push([c, k]); } runs.push({ cells, len: run, dir: 'v' }); }
+          run = 1;
+        }
+      }
+    }
+    return { marks, runs };
+  }
+
+  function trigger(c, r, out) {
+    const cell = at(c, r);
+    if (!cell || !cell.special) return;
+    const sp = cell.special;
+    cell.special = null;
+    if (sp === 'row') for (let k = 0; k < COLS; k++) out.add(`${k},${r}`);
+    if (sp === 'col') for (let k = 0; k < ROWS; k++) out.add(`${c},${k}`);
+    if (sp === 'super') {
+      const type = cell.type;
+      for (let rr2 = 0; rr2 < ROWS; rr2++) for (let cc = 0; cc < COLS; cc++) if (at(cc, rr2) && at(cc, rr2).type === type) out.add(`${cc},${rr2}`);
+    }
+    g.shake = 0.25;
+  }
+
+  function resolve() {
+    const { marks, runs } = findMatches();
+    if (!marks.size) return false;
+
+    g.cascade += 1;
+    g.bestCascade = Math.max(g.bestCascade, g.cascade);
+
+    // specials created by long runs
+    const upgrades = [];
+    for (const run of runs) {
+      if (run.len === 4) upgrades.push({ cell: run.cells[Math.floor(run.len / 2)], special: run.dir === 'h' ? 'col' : 'row' });
+      if (run.len >= 5) upgrades.push({ cell: run.cells[Math.floor(run.len / 2)], special: 'super' });
+    }
+
+    const all = new Set(marks);
+    for (const k of marks) {
+      const [c, r] = k.split(',').map(Number);
+      trigger(c, r, all);
+    }
+
+    const mult = Math.min(5, g.cascade);
+    let gained = 0;
+    for (const k of all) {
+      const [c, r] = k.split(',').map(Number);
+      const cell = at(c, r);
+      if (!cell) continue;
+      const keep = upgrades.find((u) => u.cell[0] === c && u.cell[1] === r);
+      if (keep) continue;
+      const seed = byId(cell.type);
+      g.fx.burst(OX + c * CELL + CELL / 2, OY + r * CELL + CELL / 2, seed.color, 8, 110, 0.45);
+      const tgt = g.targets.find((t) => t.id === cell.type);
+      if (tgt && tgt.got < tgt.need) {
+        tgt.got += 1;
+        if (tgt.got === tgt.need) {
+          g.score += 350;
+          g.banner = `${byId(tgt.id).name} germinated`; g.bannerT = 1.8;
+        }
+      }
+      g.grid[r][c] = null;
+      g.cleared += 1;
+      gained += 30 * mult;
+    }
+    for (const u of upgrades) {
+      const cell = at(u.cell[0], u.cell[1]);
+      if (cell) { cell.special = u.special; cell.pop = 0.3; }
+    }
+    g.score += gained;
+    if (mult >= 2) {
+      g.floats.add(VW / 2, OY - 16, `cascade ×${mult}`, PALETTE.pollen, 18);
+      g.score += 40 * mult;
+    }
+    return true;
+  }
+
+  function gravity() {
+    for (let c = 0; c < COLS; c++) {
+      let write = ROWS - 1;
+      for (let r = ROWS - 1; r >= 0; r--) {
+        if (g.grid[r][c]) {
+          if (write !== r) {
+            g.grid[write][c] = g.grid[r][c];
+            g.grid[write][c].fall = (write - r) * CELL;
+            g.grid[r][c] = null;
+          }
+          write--;
+        }
+      }
+      for (let r = write; r >= 0; r--) {
+        g.grid[r][c] = newCell();
+        g.grid[r][c].fall = (write + 1 - r) * CELL + CELL;
+      }
+    }
+  }
+
+  function trySwap(a, b) {
+    const A = at(a.c, a.r), B = at(b.c, b.r);
+    if (!A || !B) return;
+    g.grid[a.r][a.c] = B; g.grid[b.r][b.c] = A;
+
+    // a super seed swapped onto anything detonates immediately
+    const specialHit = A.special === 'super' || B.special === 'super';
+    const { marks } = findMatches();
+    if (!marks.size && !specialHit) {
+      g.grid[a.r][a.c] = A; g.grid[b.r][b.c] = B;
+      g.swapBack = 0.2;
+      g.banner = 'No match there'; g.bannerT = 0.9;
+      return;
+    }
+    if (specialHit && !marks.size) {
+      const sup = A.special === 'super' ? { c: b.c, r: b.r } : { c: a.c, r: a.r };
+      const other = A.special === 'super' ? A : B;
+      const out = new Set();
+      other.type = (A.special === 'super' ? B : A).type;
+      trigger(sup.c, sup.r, out);
+      for (const k of out) { const [c, r] = k.split(',').map(Number); if (g.grid[r][c]) { g.grid[r][c] = null; g.cleared++; g.score += 40; } }
+    }
+    g.moves -= 1;
+    g.cascade = 0;
+    g.phase = 'resolve';
+    g.timer = 0.05;
+  }
+
+  g.update = (dt) => {
+    g.t += dt;
+    g.shake = Math.max(0, g.shake - dt);
+    g.bannerT = Math.max(0, g.bannerT - dt);
+    if (g.swapBack !== null && g.swapBack > 0) { g.swapBack -= dt; if (g.swapBack <= 0) g.swapBack = null; }
+    g.fx.update(dt, 90);
+    g.floats.update(dt);
+
+    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+      const cell = at(c, r);
+      if (!cell) continue;
+      if (cell.fall > 0) cell.fall = Math.max(0, cell.fall - 900 * dt);
+      if (cell.pop > 0) cell.pop = Math.max(0, cell.pop - dt * 2.2);
+      if (cell.spawn > 0) cell.spawn = Math.max(0, cell.spawn - dt * 4);
+    }
+
+    if (g.phase === 'resolve') {
+      g.timer -= dt;
+      if (g.timer <= 0) {
+        const did = resolve();
+        gravity();
+        if (did) { g.timer = 0.24; }
+        else {
+          g.phase = 'idle';
+          if (g.targets.every((t) => t.got >= t.need)) {
+            g.score += g.moves * 60;
+            g.over = true; g.reason = 'Every seed in the tray germinated.';
+          } else if (g.moves <= 0) {
+            g.over = true; g.reason = 'Out of moves.';
+          }
+        }
+      }
+    }
+  };
+
+  g.input = (input) => {
+    if (g.phase !== 'idle' || g.over) return;
+    const p = input.pointer;
+    const c = Math.floor((p.x - OX) / CELL), r = Math.floor((p.y - OY) / CELL);
+    const inside = c >= 0 && r >= 0 && c < COLS && r < ROWS;
+
+    const adjacent = (a) => Math.abs(a.c - c) + Math.abs(a.r - r) === 1;
+
+    // Tap-tap or drag, both end in the same place.
+    if (p.justDown) {
+      if (!inside) { g.sel = null; return; }
+      if (g.sel && adjacent(g.sel)) { const from = g.sel; g.sel = null; trySwap(from, { c, r }); }
+      else g.sel = { c, r };
+      return;
+    }
+    if (p.down && inside && g.sel && adjacent(g.sel)) {
+      const from = g.sel; g.sel = null;
+      trySwap(from, { c, r });
+    }
+  };
+
+  g.draw = (ctx) => {
+    ctx.save();
+    if (g.shake > 0) ctx.translate((Math.random() - 0.5) * 5, (Math.random() - 0.5) * 5);
+
+    const bg = ctx.createLinearGradient(0, 0, 0, VH);
+    bg.addColorStop(0, '#22392C');
+    bg.addColorStop(1, PALETTE.ink);
+    ctx.fillStyle = bg; ctx.fillRect(0, 0, VW, VH);
+
+    // germination tray objectives
+    text(ctx, 'GERMINATION TRAY', VW / 2, 72, { size: 12, color: 'rgba(234,242,226,0.55)', align: 'center', font: 'Karla, sans-serif', weight: 700 });
+    g.targets.forEach((t, i) => {
+      const w = 142, x = 12 + i * (w + 9), y = 84;
+      const done = t.got >= t.need;
+      ctx.fillStyle = 'rgba(18,33,26,0.7)';
+      rr(ctx, x, y, w, 62, 12); ctx.fill();
+      ctx.strokeStyle = done ? PALETTE.chloro : 'rgba(139,224,106,0.2)';
+      ctx.lineWidth = 2; rr(ctx, x, y, w, 62, 12); ctx.stroke();
+      drawSeed(ctx, x + 26, y + 26, byId(t.id), null, g.t, 0.72);
+      text(ctx, `${Math.min(t.got, t.need)}/${t.need}`, x + 52, y + 26, { size: 17, color: done ? PALETTE.chloro : PALETTE.paper });
+      text(ctx, byId(t.id).name, x + 52, y + 42, { size: 10, color: 'rgba(234,242,226,0.55)', font: 'Karla, sans-serif', weight: 600 });
+      const bw = w - 20;
+      ctx.fillStyle = 'rgba(234,242,226,0.12)';
+      rr(ctx, x + 10, y + 50, bw, 6, 3); ctx.fill();
+      ctx.fillStyle = done ? PALETTE.chloro : byId(t.id).color;
+      rr(ctx, x + 10, y + 50, Math.max(3, bw * Math.min(1, t.got / t.need)), 6, 3); ctx.fill();
+    });
+
+    // board
+    ctx.fillStyle = 'rgba(18,33,26,0.55)';
+    rr(ctx, OX - 6, OY - 6, COLS * CELL + 12, ROWS * CELL + 12, 16); ctx.fill();
+
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const cell = at(c, r);
+        const x = OX + c * CELL + CELL / 2;
+        const y = OY + r * CELL + CELL / 2;
+        ctx.fillStyle = (c + r) % 2 ? 'rgba(139,224,106,0.045)' : 'rgba(139,224,106,0.08)';
+        rr(ctx, OX + c * CELL + 2, OY + r * CELL + 2, CELL - 4, CELL - 4, 10); ctx.fill();
+        if (!cell) continue;
+        const sel = g.sel && g.sel.c === c && g.sel.r === r;
+        const scale = 0.86 + cell.pop * 0.3 + (sel ? 0.12 + Math.sin(g.t * 9) * 0.04 : 0) - cell.spawn * 0.3;
+        drawSeed(ctx, x, y - cell.fall, byId(cell.type), cell.special, g.t + c + r, scale);
+        if (sel) {
+          ctx.strokeStyle = PALETTE.paper; ctx.lineWidth = 2.5;
+          rr(ctx, OX + c * CELL + 3, OY + r * CELL + 3, CELL - 6, CELL - 6, 10); ctx.stroke();
+        }
+      }
+    }
+
+    // soil line + sprouts earned
+    ctx.fillStyle = '#3A2A1E';
+    ctx.fillRect(0, VH - 66, VW, 66);
+    ctx.fillStyle = 'rgba(139,224,106,0.18)';
+    ctx.fillRect(0, VH - 66, VW, 3);
+    const sprouts = Math.min(22, Math.floor(g.cleared / 4));
+    for (let i = 0; i < sprouts; i++) {
+      const x = 16 + i * 21;
+      const h = 12 + (i % 3) * 5;
+      ctx.strokeStyle = PALETTE.chloroDk; ctx.lineWidth = 2.4;
+      ctx.beginPath(); ctx.moveTo(x, VH - 12); ctx.lineTo(x + Math.sin(g.t + i) * 2, VH - 12 - h); ctx.stroke();
+      ctx.fillStyle = PALETTE.chloro;
+      ctx.beginPath(); ctx.ellipse(x - 5, VH - 12 - h, 6, 3.4, -0.5, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(x + 5, VH - 14 - h, 6, 3.4, 0.5, 0, Math.PI * 2); ctx.fill();
+    }
+
+    g.fx.draw(ctx);
+    g.floats.draw(ctx);
+    ctx.restore();
+
+    hudBar(ctx, { score: g.score, label: 'MATCH AND GERMINATE', right: `${g.moves} moves` });
+    if (g.bannerT > 0) {
+      ctx.globalAlpha = Math.min(1, g.bannerT);
+      text(ctx, g.banner, VW / 2, OY - 22, { size: 17, color: PALETTE.chloro, align: 'center' });
+      ctx.globalAlpha = 1;
+    }
+  };
+
+  g.result = () => ({
+    score: g.score,
+    sun: Math.max(1, Math.floor(g.score * SUN_RATE.seeds)),
+    reason: g.reason,
+    stats: [
+      ['Seeds cleared', g.cleared],
+      ['Best cascade', `×${g.bestCascade}`],
+      ['Trays completed', `${g.targets.filter((t) => t.got >= t.need).length} / 3`],
+    ],
+    lesson: 'A seed germinates with water, oxygen and warmth. Light is optional — plenty of seeds sprout in the dark.',
+  });
+
+  return g;
+}
+
+function drawSeed(ctx, x, y, seed, special, t, scale = 1) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(scale, scale);
+
+  if (special) {
+    ctx.strokeStyle = special === 'super' ? PALETTE.paper : PALETTE.pollen;
+    ctx.lineWidth = 3;
+    circle(ctx, 0, 0, 25 + Math.sin(t * 6) * 1.5); ctx.stroke();
+  }
+
+  ctx.fillStyle = seed.color;
+  if (seed.id === 'sunflower') {
+    ctx.beginPath(); ctx.ellipse(0, 0, 12, 17, 0.25, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = 'rgba(18,33,26,0.45)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(-6, -8); ctx.lineTo(5, 10); ctx.stroke();
+  } else if (seed.id === 'bean') {
+    ctx.beginPath();
+    ctx.moveTo(-13, -4); ctx.quadraticCurveTo(0, -20, 13, -4);
+    ctx.quadraticCurveTo(16, 12, 0, 15); ctx.quadraticCurveTo(-16, 12, -13, -4);
+    ctx.fill();
+  } else if (seed.id === 'pumpkin') {
+    ctx.beginPath(); ctx.ellipse(0, 0, 11, 15, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = 'rgba(18,33,26,0.35)'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.ellipse(0, 0, 7, 11, 0, 0, Math.PI * 2); ctx.stroke();
+  } else if (seed.id === 'corn') {
+    ctx.beginPath();
+    ctx.moveTo(0, -16); ctx.quadraticCurveTo(15, -4, 10, 14);
+    ctx.lineTo(-10, 14); ctx.quadraticCurveTo(-15, -4, 0, -16);
+    ctx.fill();
+  } else if (seed.id === 'apple') {
+    circle(ctx, 0, 2, 14); ctx.fill();
+    ctx.strokeStyle = '#5FB544'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(0, -11); ctx.quadraticCurveTo(6, -19, 12, -17); ctx.stroke();
+  } else {
+    ctx.beginPath(); ctx.ellipse(0, 4, 11, 13, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#6E4629';
+    ctx.beginPath(); ctx.ellipse(0, -9, 12, 7, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillRect(-1.5, -18, 3, 6);
+  }
+  ctx.fillStyle = 'rgba(255,255,255,0.28)';
+  circle(ctx, -4, -6, 3.4); ctx.fill();
+  ctx.restore();
+}
+return createSeedCrush;
+})();
+
+/* ===== js/games/plant-survivors.js ===== */
+const createPlantSurvivors = (() => {
+// plant-survivors.js — Survivor-like. You do not attack; your thorns fire themselves.
+// Your job is positioning: the pests are not hunting you, they are hunting the three plants.
+// Every upgrade on offer is a real plant defence strategy.
+
+
+
+const TOP = 46;
+const SURVIVE = 120;
+
+const PESTS = {
+  caterpillar: { hp: 26, speed: 34, dmg: 5,  r: 13, xp: 2, color: '#A8D46A' },
+  beetle:      { hp: 18, speed: 68, dmg: 4,  r: 11, xp: 3, color: '#C97B3A' },
+  spider:      { hp: 30, speed: 44, dmg: 7,  r: 13, xp: 4, color: '#7B6FA8' },
+  fungus:      { hp: 22, speed: 26, dmg: 8,  r: 14, xp: 3, color: '#C79BE8' },
+};
+
+const UPGRADES = [
+  { id: 'rate',   name: 'Faster thorns',   desc: 'Thorns fire 18% more often.',            bio: 'Constant low-level defence is cheaper than one big response.' },
+  { id: 'count',  name: 'More thorns',     desc: 'One extra thorn per volley.',            bio: 'Prickles are skin outgrowths — plants make them by the thousand.' },
+  { id: 'dmg',    name: 'Sharper thorns',  desc: 'Thorns hit 30% harder.',                 bio: 'Sharper points mean less energy spent per attacker.' },
+  { id: 'speed',  name: 'Quick footing',   desc: 'You move 15% faster.',                   bio: 'Getting between pest and plant beats out-damaging it.' },
+  { id: 'nova',   name: 'Pollen nova',     desc: 'A pollen burst pushes pests back.',      bio: 'Some plants release irritant powders when disturbed.' },
+  { id: 'bark',   name: 'Thicker bark',    desc: 'Plants take 25% less damage.',           bio: 'Bark is dead corky armour over the living phloem.' },
+  { id: 'heal',   name: 'Root recovery',   desc: 'Plants slowly regrow health.',           bio: 'Stored root sugar lets a chewed plant rebuild leaves.' },
+  { id: 'magnet', name: 'Wider roots',     desc: 'Collect pollen from further away.',      bio: 'Root systems usually spread wider than the canopy above.' },
+];
+
+function createPlantSurvivors() {
+  const g = {
+    p: { x: VW / 2, y: 470, r: 13, hp: 5, inv: 0 },
+    plants: [
+      { x: 100, y: 250, hp: 170, max: 170, sp: 'sunflower' },
+      { x: 240, y: 170, hp: 170, max: 170, sp: 'rose' },
+      { x: 380, y: 250, hp: 170, max: 170, sp: 'oak' },
+    ],
+    pests: [],
+    thorns: [],
+    orbs: [],
+    drops: [],
+    fx: new Particles(),
+    floats: new Floaters(),
+    time: 0,
+    score: 0,
+    kills: 0,
+    level: 1,
+    xp: 0,
+    xpNeed: 6,
+    fireT: 0,
+    rate: 0.62,
+    count: 1,
+    dmg: 11,
+    moveSpeed: 165,
+    magnet: 70,
+    barkRes: 0,
+    healRate: 0,
+    novaT: 0,
+    novaEvery: 0,
+    spawnT: 2.6,
+    dblT: 0,
+    invT: 0,
+    choosing: null,
+    over: false,
+    reason: '',
+    t: 0,
+    shake: 0,
+    banner: '',
+    bannerT: 0,
+  };
+
+  const alive = () => g.plants.filter((p) => p.hp > 0);
+
+  function spawnPest() {
+    const wave = 1 + g.time / 26;
+    const pool = g.time < 25 ? ['caterpillar'] : g.time < 55 ? ['caterpillar', 'beetle'] : g.time < 95 ? ['caterpillar', 'beetle', 'spider'] : Object.keys(PESTS);
+    const type = pick(pool);
+    const base = PESTS[type];
+    const edge = Math.floor(rand(0, 4));
+    let x, y;
+    if (edge === 0) { x = rand(0, VW); y = TOP - 20; }
+    else if (edge === 1) { x = rand(0, VW); y = VH + 20; }
+    else if (edge === 2) { x = -20; y = rand(TOP, VH); }
+    else { x = VW + 20; y = rand(TOP, VH); }
+    g.pests.push({
+      type, x, y,
+      hp: base.hp * (1 + wave * 0.13),
+      max: base.hp * (1 + wave * 0.13),
+      speed: base.speed * (1 + wave * 0.038),
+      r: base.r, flash: 0, t: rand(0, 6),
+    });
+  }
+
+  function damagePest(pest, amount, fromX, fromY) {
+    pest.hp -= amount;
+    pest.flash = 0.12;
+    if (pest.hp <= 0) {
+      g.pests = g.pests.filter((p) => p !== pest);
+      g.kills += 1;
+      g.score += 12;
+      g.fx.burst(pest.x, pest.y, PESTS[pest.type].color, 12, 130, 0.5);
+      g.orbs.push({ x: pest.x, y: pest.y, v: PESTS[pest.type].xp, t: 0 });
+      if (pest.type === 'fungus' && !pest.split) {
+        for (let i = 0; i < 2; i++) {
+          g.pests.push({ type: 'fungus', x: pest.x + rand(-14, 14), y: pest.y + rand(-14, 14), hp: 10, max: 10, speed: 40, r: 9, flash: 0, t: 0, split: true });
+        }
+      }
+      if (Math.random() < 0.055) {
+        g.drops.push({ x: pest.x, y: pest.y, type: pick(['supersun', 'waterdrop', 'barkshield', 'superbloom', 'butterfly']), life: 12 });
+      }
+    }
+  }
+
+  function fire() {
+    if (!g.pests.length) return;
+    const sorted = g.pests.slice().sort((a, b) => Math.hypot(a.x - g.p.x, a.y - g.p.y) - Math.hypot(b.x - g.p.x, b.y - g.p.y));
+    for (let i = 0; i < g.count; i++) {
+      const target = sorted[Math.min(i, sorted.length - 1)];
+      const a = Math.atan2(target.y - g.p.y, target.x - g.p.x) + (i > 0 ? rand(-0.12, 0.12) : 0);
+      g.thorns.push({ x: g.p.x, y: g.p.y, vx: Math.cos(a) * 420, vy: Math.sin(a) * 420, life: 1.5 });
+    }
+  }
+
+  function levelUp() {
+    g.level += 1;
+    g.xp -= g.xpNeed;
+    g.xpNeed = Math.round(g.xpNeed * 1.42 + 2);
+    const pool = UPGRADES.slice().sort(() => Math.random() - 0.5).slice(0, 3);
+    g.choosing = pool;
+  }
+
+  function apply(u) {
+    if (u.id === 'rate') g.rate *= 0.82;
+    if (u.id === 'count') g.count += 1;
+    if (u.id === 'dmg') g.dmg *= 1.3;
+    if (u.id === 'speed') g.moveSpeed *= 1.15;
+    if (u.id === 'nova') { g.novaEvery = g.novaEvery ? g.novaEvery * 0.75 : 5; }
+    if (u.id === 'bark') g.barkRes = Math.min(0.7, g.barkRes + 0.25);
+    if (u.id === 'heal') g.healRate += 1.6;
+    if (u.id === 'magnet') g.magnet += 55;
+    g.choosing = null;
+    g.banner = u.name; g.bannerT = 1.6;
+  }
+
+  function takeDrop(d) {
+    const c = { supersun: PALETTE.pollen, waterdrop: PALETTE.rain, barkshield: PALETTE.barkLt, superbloom: PALETTE.petal, butterfly: '#FF9F45' }[d.type];
+    g.fx.burst(d.x, d.y, c, 22, 180);
+    if (d.type === 'supersun') { g.dblT = 8; g.banner = 'Super Sun — double damage'; }
+    if (d.type === 'waterdrop') { g.plants.forEach((p) => { if (p.hp > 0) p.hp = Math.min(p.max, p.hp + 30); }); g.banner = 'Water Drop — plants recover'; }
+    if (d.type === 'barkshield') { g.invT = 7; g.banner = 'Bark Shield — you are armoured'; }
+    if (d.type === 'superbloom') {
+      g.pests.forEach((p) => damagePest(p, 45, g.p.x, g.p.y));
+      g.fx.burst(g.p.x, g.p.y, PALETTE.petal, 50, 300, 1.0);
+      g.banner = 'Super Bloom';
+    }
+    if (d.type === 'butterfly') { g.orbs.forEach((o) => (o.pull = true)); g.banner = 'Butterfly — pollen drawn in'; }
+    g.bannerT = 1.6;
+  }
+
+  g.update = (dt) => {
+    if (g.choosing) { g.t += dt; return; }
+    g.t += dt;
+    g.time += dt;
+    g.shake = Math.max(0, g.shake - dt);
+    g.bannerT = Math.max(0, g.bannerT - dt);
+    g.p.inv = Math.max(0, g.p.inv - dt);
+    g.dblT = Math.max(0, g.dblT - dt);
+    g.invT = Math.max(0, g.invT - dt);
+    g.fx.update(dt, 0);
+    g.floats.update(dt);
+    g.score += dt * 6;
+
+    if (g.healRate) g.plants.forEach((p) => { if (p.hp > 0) p.hp = Math.min(p.max, p.hp + g.healRate * dt); });
+
+    g.spawnT -= dt;
+    if (g.spawnT <= 0) {
+      const n = 1 + Math.floor(g.time / 52);
+      for (let i = 0; i < n; i++) spawnPest();
+      g.spawnT = clamp(2.1 - g.time * 0.0080, 0.52, 2.1);
+    }
+
+    g.fireT -= dt;
+    if (g.fireT <= 0) { fire(); g.fireT = g.rate; }
+
+    if (g.novaEvery) {
+      g.novaT -= dt;
+      if (g.novaT <= 0) {
+        g.novaT = g.novaEvery;
+        g.fx.burst(g.p.x, g.p.y, PALETTE.pollen, 26, 220, 0.6);
+        for (const p of g.pests) {
+          const d = Math.hypot(p.x - g.p.x, p.y - g.p.y);
+          if (d < 110) {
+            const a = Math.atan2(p.y - g.p.y, p.x - g.p.x);
+            p.x += Math.cos(a) * 34; p.y += Math.sin(a) * 34;
+            damagePest(p, g.dmg * 0.8 * (g.dblT > 0 ? 2 : 1));
+          }
+        }
+      }
+    }
+
+    for (let i = g.thorns.length - 1; i >= 0; i--) {
+      const th = g.thorns[i];
+      th.x += th.vx * dt; th.y += th.vy * dt; th.life -= dt;
+      if (th.life <= 0 || th.x < -20 || th.x > VW + 20 || th.y < TOP - 20 || th.y > VH + 20) { g.thorns.splice(i, 1); continue; }
+      for (const p of g.pests) {
+        if (Math.hypot(p.x - th.x, p.y - th.y) < p.r + 4) {
+          damagePest(p, g.dmg * (g.dblT > 0 ? 2 : 1));
+          g.thorns.splice(i, 1);
+          break;
+        }
+      }
+    }
+
+    const living = alive();
+    for (const p of g.pests) {
+      p.t += dt;
+      p.flash = Math.max(0, p.flash - dt);
+      let tx = g.p.x, ty = g.p.y;
+      if (living.length) {
+        let best = living[0], bd = 1e9;
+        for (const pl of living) {
+          const d = Math.hypot(pl.x - p.x, pl.y - p.y);
+          if (d < bd) { bd = d; best = pl; }
+        }
+        tx = best.x; ty = best.y;
+        if (bd < 34) {
+          best.hp -= PESTS[p.type].dmg * (1 - g.barkRes) * dt;
+          if (best.hp <= 0) {
+            best.hp = 0;
+            g.shake = 0.5;
+            g.floats.add(best.x, best.y - 40, 'plant lost', PALETTE.danger, 17);
+            g.fx.burst(best.x, best.y, PALETTE.danger, 30, 200);
+          }
+          continue;
+        }
+      }
+      const a = Math.atan2(ty - p.y, tx - p.x);
+      p.x += Math.cos(a) * p.speed * dt;
+      p.y += Math.sin(a) * p.speed * dt;
+
+      if (g.p.inv <= 0 && g.invT <= 0 && Math.hypot(p.x - g.p.x, p.y - g.p.y) < p.r + g.p.r) {
+        g.p.hp -= 1;
+        g.p.inv = 1.1;
+        g.shake = 0.35;
+        g.fx.burst(g.p.x, g.p.y, PALETTE.danger, 16, 150);
+        if (g.p.hp <= 0) { g.over = true; g.reason = 'The gardener was overrun.'; }
+      }
+    }
+
+    for (let i = g.orbs.length - 1; i >= 0; i--) {
+      const o = g.orbs[i];
+      o.t += dt;
+      const d = Math.hypot(o.x - g.p.x, o.y - g.p.y);
+      if (d < g.magnet || o.pull) {
+        const a = Math.atan2(g.p.y - o.y, g.p.x - o.x);
+        const s = o.pull ? 300 : 200;
+        o.x += Math.cos(a) * s * dt; o.y += Math.sin(a) * s * dt;
+      }
+      if (d < 16) {
+        g.orbs.splice(i, 1);
+        g.xp += o.v;
+        g.score += 4;
+        if (g.xp >= g.xpNeed) levelUp();
+      }
+    }
+
+    for (let i = g.drops.length - 1; i >= 0; i--) {
+      const d = g.drops[i];
+      d.life -= dt;
+      if (d.life <= 0) { g.drops.splice(i, 1); continue; }
+      if (Math.hypot(d.x - g.p.x, d.y - g.p.y) < 22) { takeDrop(d); g.drops.splice(i, 1); }
+    }
+
+    if (!alive().length) { g.over = true; g.reason = 'Every plant was destroyed.'; }
+    if (g.time >= SURVIVE) {
+      g.score += alive().length * 400 + 600;
+      g.over = true;
+      g.reason = 'You held the beds for the full season.';
+    }
+  };
+
+  g.input = (input) => {
+    if (g.choosing) {
+      const cards = cardRects();
+      if (input.pointer.justDown) {
+        cards.forEach((r, i) => {
+          const p = input.pointer;
+          if (p.x > r.x && p.x < r.x + r.w && p.y > r.y && p.y < r.y + r.h) apply(g.choosing[i]);
+        });
+      }
+      if (input.hit('1')) apply(g.choosing[0]);
+      if (input.hit('2')) apply(g.choosing[1]);
+      if (input.hit('3')) apply(g.choosing[2]);
+      return;
+    }
+    let dx = 0, dy = 0;
+    if (input.key('arrowleft', 'a')) dx -= 1;
+    if (input.key('arrowright', 'd')) dx += 1;
+    if (input.key('arrowup', 'w')) dy -= 1;
+    if (input.key('arrowdown', 's')) dy += 1;
+    if (input.pointer.down) {
+      const ddx = input.pointer.x - g.p.x, ddy = input.pointer.y - g.p.y;
+      if (Math.hypot(ddx, ddy) > 8) { dx = ddx; dy = ddy; }
+    }
+    const len = Math.hypot(dx, dy);
+    if (len > 0) {
+      const dt = 1 / 60;
+      g.p.x = clamp(g.p.x + (dx / len) * g.moveSpeed * dt, 14, VW - 14);
+      g.p.y = clamp(g.p.y + (dy / len) * g.moveSpeed * dt, TOP + 14, VH - 14);
+    }
+  };
+
+  function cardRects() {
+    return [0, 1, 2].map((i) => ({ x: 30, y: 200 + i * 128, w: VW - 60, h: 112 }));
+  }
+
+  g.draw = (ctx) => {
+    ctx.save();
+    if (g.shake > 0) ctx.translate((Math.random() - 0.5) * 7, (Math.random() - 0.5) * 7);
+
+    ctx.fillStyle = '#233A2C';
+    ctx.fillRect(0, TOP, VW, VH - TOP);
+    ctx.strokeStyle = 'rgba(139,224,106,0.05)';
+    for (let i = 0; i < 20; i++) {
+      ctx.beginPath(); ctx.moveTo(0, TOP + i * 36); ctx.lineTo(VW, TOP + i * 36); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(i * 36, TOP); ctx.lineTo(i * 36, VH); ctx.stroke();
+    }
+
+    for (const p of g.plants) {
+      if (p.hp <= 0) {
+        ctx.globalAlpha = 0.28;
+        drawPlant(ctx, p.x, p.y + 30, 96, p.sp, 1, g.t);
+        ctx.globalAlpha = 1;
+        continue;
+      }
+      const frac = p.hp / p.max;
+      ctx.fillStyle = 'rgba(18,33,26,0.5)';
+      ctx.beginPath(); ctx.ellipse(p.x, p.y + 30, 34, 10, 0, 0, Math.PI * 2); ctx.fill();
+      drawPlant(ctx, p.x, p.y + 30, 96, p.sp, frac > 0.75 ? 5 : frac > 0.45 ? 4 : frac > 0.2 ? 2 : 1, g.t);
+      ctx.fillStyle = 'rgba(18,33,26,0.8)';
+      rr(ctx, p.x - 26, p.y + 36, 52, 7, 3.5); ctx.fill();
+      ctx.fillStyle = frac > 0.5 ? PALETTE.chloro : frac > 0.25 ? PALETTE.pollen : PALETTE.danger;
+      rr(ctx, p.x - 26, p.y + 36, 52 * frac, 7, 3.5); ctx.fill();
+    }
+
+    for (const d of g.drops) {
+      const c = { supersun: PALETTE.pollen, waterdrop: PALETTE.rain, barkshield: PALETTE.barkLt, superbloom: PALETTE.petal, butterfly: '#FF9F45' }[d.type];
+      ctx.globalAlpha = d.life < 3 && Math.floor(d.life * 6) % 2 === 0 ? 0.4 : 1;
+      ctx.fillStyle = c;
+      circle(ctx, d.x, d.y, 11 + Math.sin(g.t * 6) * 1.5); ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
+    for (const o of g.orbs) {
+      ctx.fillStyle = PALETTE.pollen;
+      circle(ctx, o.x, o.y, 4.5 + Math.sin(g.t * 8 + o.t) * 0.8); ctx.fill();
+      ctx.globalAlpha = 0.3;
+      circle(ctx, o.x, o.y, 9); ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
+    for (const p of g.pests) drawPest(ctx, p, g.t);
+
+    ctx.strokeStyle = PALETTE.chloro;
+    ctx.lineWidth = 3; ctx.lineCap = 'round';
+    for (const th of g.thorns) {
+      ctx.beginPath();
+      ctx.moveTo(th.x, th.y);
+      ctx.lineTo(th.x - th.vx * 0.018, th.y - th.vy * 0.018);
+      ctx.stroke();
+    }
+
+    // gardener
+    const blink = g.p.inv > 0 && Math.floor(g.t * 14) % 2 === 0;
+    ctx.globalAlpha = blink ? 0.4 : 1;
+    if (g.invT > 0) {
+      ctx.strokeStyle = PALETTE.barkLt; ctx.lineWidth = 3;
+      circle(ctx, g.p.x, g.p.y, 24 + Math.sin(g.t * 6) * 2); ctx.stroke();
+    }
+    if (g.magnet > 70) {
+      ctx.strokeStyle = 'rgba(255,201,60,0.10)';
+      ctx.lineWidth = 1.5;
+      circle(ctx, g.p.x, g.p.y, g.magnet); ctx.stroke();
+    }
+    ctx.fillStyle = PALETTE.chloro;
+    circle(ctx, g.p.x, g.p.y, 13); ctx.fill();
+    ctx.fillStyle = PALETTE.ink;
+    circle(ctx, g.p.x - 4, g.p.y - 3, 2.2); ctx.fill();
+    circle(ctx, g.p.x + 4, g.p.y - 3, 2.2); ctx.fill();
+    ctx.fillStyle = PALETTE.chloroDk;
+    ctx.beginPath(); ctx.ellipse(g.p.x, g.p.y - 15, 11, 5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 1;
+
+    g.fx.draw(ctx);
+    g.floats.draw(ctx);
+    ctx.restore();
+
+    const left = Math.max(0, Math.ceil(SURVIVE - g.time));
+    hudBar(ctx, { score: Math.floor(g.score), label: `LV ${g.level}`, right: `${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}` });
+
+    // xp bar
+    ctx.fillStyle = 'rgba(18,33,26,0.85)';
+    ctx.fillRect(0, 46, VW, 8);
+    ctx.fillStyle = PALETTE.pollen;
+    ctx.fillRect(0, 46, VW * clamp(g.xp / g.xpNeed, 0, 1), 8);
+
+    for (let i = 0; i < g.p.hp; i++) {
+      ctx.fillStyle = PALETTE.petal;
+      circle(ctx, 16 + i * 17, 70, 6); ctx.fill();
+    }
+    if (g.dblT > 0) text(ctx, 'SUPER SUN', VW - 14, 74, { size: 13, color: PALETTE.pollen, align: 'right' });
+
+    if (g.bannerT > 0) {
+      ctx.globalAlpha = Math.min(1, g.bannerT);
+      text(ctx, g.banner, VW / 2, 104, { size: 18, color: PALETTE.chloro, align: 'center' });
+      ctx.globalAlpha = 1;
+    }
+
+    if (g.choosing) {
+      ctx.fillStyle = 'rgba(10,20,15,0.88)';
+      ctx.fillRect(0, 0, VW, VH);
+      text(ctx, `Level ${g.level}`, VW / 2, 130, { size: 34, color: PALETTE.paper, align: 'center' });
+      text(ctx, 'Pick one defence', VW / 2, 158, { size: 15, color: 'rgba(234,242,226,0.6)', align: 'center', font: 'Karla, sans-serif', weight: 600 });
+      cardRects().forEach((r, i) => {
+        const u = g.choosing[i];
+        ctx.fillStyle = '#1E3529';
+        rr(ctx, r.x, r.y, r.w, r.h, 16); ctx.fill();
+        ctx.strokeStyle = PALETTE.chloro; ctx.lineWidth = 2;
+        rr(ctx, r.x, r.y, r.w, r.h, 16); ctx.stroke();
+        text(ctx, `${i + 1}`, r.x + 22, r.y + 34, { size: 18, color: PALETTE.pollen });
+        text(ctx, u.name, r.x + 46, r.y + 34, { size: 21, color: PALETTE.paper });
+        text(ctx, u.desc, r.x + 46, r.y + 58, { size: 14, color: PALETTE.chloro, font: 'Karla, sans-serif', weight: 600 });
+        wrapText(ctx, u.bio, r.x + 46, r.y + 80, r.w - 70, 15, { size: 12, color: 'rgba(234,242,226,0.55)', font: 'Karla, sans-serif', weight: 400 });
+      });
+    }
+  };
+
+  g.result = () => ({
+    score: Math.floor(g.score),
+    sun: Math.max(1, Math.floor(g.score * SUN_RATE.survivors)),
+    reason: g.reason,
+    stats: [
+      ['Pests cleared', g.kills],
+      ['Survived', `${Math.floor(g.time)}s of ${SURVIVE}s`],
+      ['Plants standing', `${alive().length} / 3`],
+    ],
+    lesson: 'Real plants defend themselves chemically and structurally — thorns, bitter compounds, thick bark — because they cannot run.',
+  });
+
+  return g;
+}
+
+function wrapText(ctx, str, x, y, maxW, lh, style) {
+  ctx.save();
+  ctx.font = `${style.weight || 400} ${style.size}px ${style.font}`;
+  ctx.fillStyle = style.color;
+  ctx.textAlign = 'left';
+  const words = str.split(' ');
+  let line = '', yy = y;
+  for (const w of words) {
+    const test = line ? `${line} ${w}` : w;
+    if (ctx.measureText(test).width > maxW && line) { ctx.fillText(line, x, yy); line = w; yy += lh; }
+    else line = test;
+  }
+  if (line) ctx.fillText(line, x, yy);
+  ctx.restore();
+}
+
+function drawPest(ctx, p, t) {
+  const base = PESTS[p.type];
+  ctx.save();
+  ctx.translate(p.x, p.y);
+  ctx.fillStyle = p.flash > 0 ? '#FFFFFF' : base.color;
+
+  if (p.type === 'caterpillar') {
+    for (let i = 0; i < 4; i++) {
+      circle(ctx, -8 + i * 6, Math.sin(t * 8 + i) * 2, p.r * 0.55); ctx.fill();
+    }
+    ctx.fillStyle = PALETTE.ink;
+    circle(ctx, 10, -1, 1.8); ctx.fill();
+  } else if (p.type === 'beetle') {
+    ctx.beginPath(); ctx.ellipse(0, 0, p.r, p.r * 0.78, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = 'rgba(18,33,26,0.65)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0, -p.r * 0.78); ctx.lineTo(0, p.r * 0.78); ctx.stroke();
+  } else if (p.type === 'spider') {
+    ctx.strokeStyle = p.flash > 0 ? '#FFF' : base.color;
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2 + Math.sin(t * 6) * 0.1;
+      ctx.beginPath(); ctx.moveTo(0, 0);
+      ctx.lineTo(Math.cos(a) * p.r * 1.5, Math.sin(a) * p.r * 1.5); ctx.stroke();
+    }
+    circle(ctx, 0, 0, p.r * 0.7); ctx.fill();
+  } else {
+    for (let i = 0; i < 4; i++) {
+      const a = (i / 4) * Math.PI * 2 + t;
+      circle(ctx, Math.cos(a) * p.r * 0.45, Math.sin(a) * p.r * 0.45, p.r * 0.5); ctx.fill();
+    }
+  }
+
+  if (p.hp < p.max) {
+    ctx.fillStyle = 'rgba(18,33,26,0.7)';
+    rr(ctx, -p.r, -p.r - 9, p.r * 2, 4, 2); ctx.fill();
+    ctx.fillStyle = PALETTE.danger;
+    rr(ctx, -p.r, -p.r - 9, p.r * 2 * (p.hp / p.max), 4, 2); ctx.fill();
+  }
+  ctx.restore();
+}
+return createPlantSurvivors;
+})();
+/* ===== js/main.js ===== */
+(() => {
+// main.js — hub, economy loop, run launcher, results and quiz.
+
+
+
+
+
+
+
+
+
+const FACTORIES = {
+  vine: createVineGarden,
+  clouds: createCloudBarrage,
+  bee: createBeeRush,
+  seeds: createSeedCrush,
+  survivors: createPlantSurvivors,
+};
+const GLYPH = { vine: '🌿', clouds: '☁', bee: '🐝', seeds: '🌰', survivors: '🛡' };
+
+const $ = (id) => document.getElementById(id);
+const hub = $('hub'), play = $('play'), overlay = $('overlay'), sheet = $('sheet');
+
+let selected = null;
+let stopRun = null;
+let runInput = null;
+
+/* =========================================================
+   Garden bed canvas
+   ========================================================= */
+const gc = $('gardenCanvas');
+const gctx = gc.getContext('2d');
+const GW = 960, GH = 380, SOIL = 236;
+const plotX = (i) => 96 + i * 192;
+
+(function scaleGarden() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  gc.width = GW * dpr; gc.height = GH * dpr;
+  gctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+})();
+
+let gt = 0;
+function drawGarden(now) {
+  gt = now / 1000;
+  gctx.clearRect(0, 0, GW, GH);
+
+  // sky wash + sun
+  const sky = gctx.createLinearGradient(0, 0, 0, SOIL);
+  sky.addColorStop(0, '#204536');
+  sky.addColorStop(1, '#1A3227');
+  gctx.fillStyle = sky;
+  gctx.fillRect(0, 0, GW, SOIL);
+
+  gctx.fillStyle = 'rgba(255,201,60,0.13)';
+  circle(gctx, 862, 62, 46 + Math.sin(gt * 0.8) * 3); gctx.fill();
+  gctx.fillStyle = 'rgba(255,201,60,0.9)';
+  circle(gctx, 862, 62, 21); gctx.fill();
+
+  // soil
+  const soil = gctx.createLinearGradient(0, SOIL, 0, GH);
+  soil.addColorStop(0, '#42301F');
+  soil.addColorStop(1, '#2A1D14');
+  gctx.fillStyle = soil;
+  gctx.fillRect(0, SOIL, GW, GH - SOIL);
+  gctx.fillStyle = 'rgba(139,224,106,0.22)';
+  gctx.fillRect(0, SOIL, GW, 3);
+
+  S.state.plots.forEach((plot, i) => {
+    const x = plotX(i);
+    const sp = SPECIES[plot.species];
+    const isSel = selected === i;
+
+    if (isSel) {
+      gctx.fillStyle = 'rgba(139,224,106,0.07)';
+      rr(gctx, x - 88, 22, 176, GH - 60, 18); gctx.fill();
+      gctx.strokeStyle = 'rgba(139,224,106,0.4)'; gctx.lineWidth = 2;
+      rr(gctx, x - 88, 22, 176, GH - 60, 18); gctx.stroke();
+    }
+
+    if (!plot.unlocked) {
+      gctx.fillStyle = 'rgba(18,33,26,0.5)';
+      rr(gctx, x - 70, SOIL - 128, 140, 150, 14); gctx.fill();
+      gctx.setLineDash([7, 7]);
+      gctx.strokeStyle = 'rgba(234,242,226,0.28)'; gctx.lineWidth = 2;
+      rr(gctx, x - 70, SOIL - 128, 140, 150, 14); gctx.stroke();
+      gctx.setLineDash([]);
+      text(gctx, '✿', x, SOIL - 66, { size: 30, color: 'rgba(234,242,226,0.4)', align: 'center' });
+      text(gctx, `${PLOT_UNLOCK_COST[i]} plantus`, x, SOIL - 34, { size: 15, color: PALETTE.petal, align: 'center' });
+      text(gctx, 'to open this bed', x, SOIL - 16, { size: 11, color: 'rgba(234,242,226,0.45)', align: 'center', font: 'Karla, sans-serif', weight: 600 });
+    } else {
+      gctx.fillStyle = 'rgba(0,0,0,0.22)';
+      gctx.beginPath(); gctx.ellipse(x, SOIL + 6, 44, 9, 0, 0, Math.PI * 2); gctx.fill();
+      drawPlant(gctx, x, SOIL, 214, plot.species, plot.stage, gt + i);
+
+      if (plot.stage === MAX_STAGE) {
+        for (let k = 0; k < 3; k++) {
+          const px = x + Math.sin(gt * 0.9 + k * 2.1) * 52;
+          const py = SOIL - 150 + Math.cos(gt * 1.3 + k) * 26;
+          gctx.fillStyle = 'rgba(255,201,60,0.75)';
+          circle(gctx, px, py, 2.6); gctx.fill();
+        }
+      }
+    }
+
+    // label plate
+    const label = plot.unlocked ? sp.name : 'Locked bed';
+    gctx.fillStyle = 'rgba(18,33,26,0.72)';
+    const w = 152;
+    rr(gctx, x - w / 2, GH - 40, w, 28, 14); gctx.fill();
+    text(gctx, label, x, GH - 26, { size: 14, color: plot.unlocked ? PALETTE.paper : 'rgba(234,242,226,0.5)', align: 'center' });
+    text(gctx, plot.unlocked ? `${plot.stage}/${MAX_STAGE}` : '', x + w / 2 - 16, GH - 26, { size: 12, color: PALETTE.chloro, align: 'center' });
+  });
+
+  requestAnimationFrame(drawGarden);
+}
+requestAnimationFrame(drawGarden);
+
+gc.addEventListener('click', (e) => {
+  const r = gc.getBoundingClientRect();
+  const x = ((e.clientX - r.left) / r.width) * GW;
+  let best = 0, bd = 1e9;
+  S.state.plots.forEach((_, i) => {
+    const d = Math.abs(plotX(i) - x);
+    if (d < bd) { bd = d; best = i; }
+  });
+  selectPlot(best);
+});
+
+/* =========================================================
+   Plot panel
+   ========================================================= */
+function selectPlot(i) {
+  selected = i;
+  renderPlot();
+  $('plotPanel').hidden = false;
+  $('plotPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function renderPlot() {
+  if (selected === null) return;
+  const plot = S.state.plots[selected];
+  const sp = SPECIES[plot.species];
+  const locked = !plot.unlocked;
+
+  $('plotName').textContent = locked ? 'Locked bed' : sp.name;
+  $('plotLatin').textContent = locked ? `Opens as ${sp.name}` : sp.latin;
+  $('plotStage').textContent = locked ? 'Closed' : STAGES[plot.stage].name;
+
+  const track = $('stageTrack');
+  track.innerHTML = '';
+  STAGES.forEach((_, k) => {
+    const s = document.createElement('span');
+    if (!locked && k < plot.stage) s.className = 'on';
+    if (!locked && k === plot.stage) s.className = 'now';
+    track.appendChild(s);
+  });
+
+  $('plotCaption').textContent = locked
+    ? `This bed is waiting. Plantus tokens are minted by growing what you already have — bring ${PLOT_UNLOCK_COST[selected]} back here and the ${sp.name.toLowerCase()} goes in.`
+    : STAGES[plot.stage].caption;
+  $('plotTrait').textContent = locked ? '' : sp.trait;
+
+  const btn = $('growBtn');
+  if (locked) {
+    const c = PLOT_UNLOCK_COST[selected];
+    btn.textContent = `Open bed — ${c} plantus`;
+    btn.disabled = S.state.plantus < c;
+    btn.onclick = () => {
+      if (S.unlockPlot(selected)) { bump('plantusCount'); renderPlot(); }
+    };
+  } else if (plot.stage >= MAX_STAGE) {
+    btn.textContent = 'Fully bloomed';
+    btn.disabled = true;
+    btn.onclick = null;
+  } else {
+    const c = S.growthCost(selected);
+    btn.textContent = `Grow to ${STAGES[plot.stage + 1].name.toLowerCase()} — ${c} sun`;
+    btn.disabled = S.state.sun < c;
+    btn.onclick = () => doGrow(selected);
+  }
+}
+
+function doGrow(i) {
+  const res = S.grow(i);
+  if (!res) return;
+  bump('sunCount'); bump('plantusCount');
+  renderPlot();
+
+  const stage = STAGES[res.stage];
+  const fact = res.factId ? FACTS[res.factId] : null;
+  showSheet(`
+    <h2>${stage.name}</h2>
+    <p class="reason">${SPECIES[S.state.plots[i].species].name} · ${res.spent} sun spent</p>
+    <div class="score-row">
+      <span class="big" style="color:var(--petal)">+${res.plantus}</span>
+      <span class="earn" style="background:rgba(255,126,168,.16);color:var(--petal)">plantus earned</span>
+    </div>
+    <div class="lesson"><strong>What just happened</strong>${stage.caption}</div>
+    ${fact ? `<div class="unlock"><span class="ico">📖</span><div><h4>Field guide: ${fact.title}</h4><p>${fact.body}</p></div></div>` : ''}
+    <div class="sheet-actions">
+      <button class="btn btn--full" data-close>Back to the garden</button>
+    </div>
+  `);
+}
+
+$('closePlot').onclick = () => { $('plotPanel').hidden = true; selected = null; };
+
+/* =========================================================
+   Wallet + field guide
+   ========================================================= */
+function bump(id) {
+  const el = $(id).parentElement;
+  el.classList.add('bump');
+  setTimeout(() => el.classList.remove('bump'), 220);
+}
+
+function renderWallet() {
+  $('sunCount').textContent = S.state.sun;
+  $('plantusCount').textContent = S.state.plantus;
+  // contextual hint under the bed
+  const next = S.state.plots
+    .map((p, i) => ({ i, p, c: S.growthCost(i) }))
+    .filter((o) => o.p.unlocked && o.c !== null)
+    .sort((a, b) => a.c - b.c)[0];
+  $('bedHint').textContent = next
+    ? (S.state.sun >= next.c
+        ? `You can afford to grow the ${SPECIES[next.p.species].name.toLowerCase()} now — tap its plot`
+        : `Tap a plot to tend it · cheapest growth costs ${next.c} sun, you have ${S.state.sun}`)
+    : 'Every open bed is in full bloom — spend plantus to open another';
+
+  const t = S.state.totals;
+  $('statLine').textContent =
+    `${t.sunEarned} sun earned all-time · ${t.blooms} full blooms · quiz ${t.quizRight}/${t.quizAsked}`;
+}
+
+function renderFacts() {
+  const grid = $('factGrid');
+  grid.innerHTML = '';
+  const ids = Object.keys(FACTS);
+  $('factCount').textContent = S.state.facts.length;
+  $('factTotal').textContent = ids.length;
+  ids.forEach((id) => {
+    const f = FACTS[id];
+    const has = S.state.facts.includes(id);
+    const el = document.createElement('article');
+    el.className = `fact${has ? '' : ' locked'}`;
+    el.innerHTML = has
+      ? `<span class="tag">${f.tag}</span><h4>${f.title}</h4><p>${f.body}</p>`
+      : `<span class="tag">${f.tag}</span><h4>Not collected</h4><p>Keep playing and growing to unlock this entry.</p>`;
+    grid.appendChild(el);
+  });
+}
+
+function renderGames() {
+  const grid = $('gameGrid');
+  grid.innerHTML = '';
+  GAMES.forEach((g) => {
+    const btn = document.createElement('button');
+    btn.className = 'game-card';
+    const best = S.state.best[g.id];
+    btn.innerHTML = `
+      <span class="glyph" aria-hidden="true">${GLYPH[g.id]}</span>
+      <span class="tag">${g.tag}</span>
+      <h3>${g.title}</h3>
+      <p class="verb">${g.verb}</p>
+      <p class="best">${best ? `Best ${best}` : 'Not played yet'}</p>`;
+    btn.onclick = () => startRun(g.id);
+    grid.appendChild(btn);
+  });
+}
+
+function renderAll() {
+  renderWallet();
+  renderFacts();
+  renderGames();
+  if (selected !== null) renderPlot();
+}
+S.onChange(renderAll);
+renderAll();
+
+/* =========================================================
+   Running a game
+   ========================================================= */
+const gameCanvas = $('gameCanvas');
+const gameCtx = setupCanvas(gameCanvas);
+
+function startRun(id) {
+  const meta = GAMES.find((g) => g.id === id);
+  $('playTitle').textContent = meta.title;
+  $('playHint').textContent = meta.hint;
+  hub.hidden = true;
+  play.hidden = false;
+  window.scrollTo(0, 0);
+
+  const game = FACTORIES[id]();
+  runInput = new Input(gameCanvas);
+
+  const wrapped = {
+    update(dt) { game.input(runInput); game.update(dt); },
+    draw(ctx) { game.draw(ctx); },
+    get over() { return game.over; },
+    result: () => game.result(),
+  };
+
+  stopRun = runLoop(wrapped, gameCtx, runInput, (res) => finishRun(id, res));
+}
+
+function endRunCleanup() {
+  if (stopRun) { stopRun(); stopRun = null; }
+  if (runInput) { runInput.destroy(); runInput = null; }
+  play.hidden = true;
+  hub.hidden = false;
+}
+
+$('quitBtn').onclick = () => endRunCleanup();
+$('homeBtn').onclick = () => { if (!play.hidden) endRunCleanup(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+
+function finishRun(id, res) {
+  const rec = S.recordRun(id, res.score, res.sun);
+  endRunCleanup();
+
+  const q = pickQuiz(id);
+  const fact = rec.newFact ? FACTS[rec.newFact] : null;
+
+  showSheet(`
+    <h2>${GAMES.find((g) => g.id === id).title}</h2>
+    <p class="reason">${res.reason}</p>
+    <div class="score-row">
+      <span class="big">${res.score}</span>
+      <span class="earn">+${res.sun} sun</span>
+    </div>
+    <ul class="stat-list">
+      ${res.stats.map(([k, v]) => `<li><span>${k}</span><b>${v}</b></li>`).join('')}
+      <li><span>Personal best</span><b>${rec.best}</b></li>
+    </ul>
+    <div class="lesson"><strong>The biology</strong>${res.lesson}</div>
+    ${fact ? `<div class="unlock"><span class="ico">📖</span><div><h4>Field guide: ${fact.title}</h4><p>${fact.body}</p></div></div>` : ''}
+    <div class="quiz" id="quizBox">
+      <p>${q.q}</p>
+      <div class="quiz-opts">
+        ${q.a.map((opt, i) => `<button class="quiz-opt" data-i="${i}">${opt}</button>`).join('')}
+      </div>
+      <p class="quiz-feedback" id="quizFeedback">Answer correctly for +15 sun.</p>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn btn--full" data-again="${id}">Play again</button>
+      <button class="btn btn--ghost btn--full" data-close>Spend sun in the garden</button>
+    </div>
+  `);
+
+  let answered = false;
+  sheet.querySelectorAll('.quiz-opt').forEach((btn) => {
+    btn.onclick = () => {
+      if (answered) return;
+      answered = true;
+      const i = Number(btn.dataset.i);
+      const right = i === q.correct;
+      btn.classList.add(right ? 'right' : 'wrong');
+      if (!right) sheet.querySelector(`.quiz-opt[data-i="${q.correct}"]`).classList.add('right');
+      S.recordQuiz(right);
+      if (right) { S.addSun(15); bump('sunCount'); }
+      $('quizFeedback').textContent = right ? `Correct. +15 sun. ${q.why}` : q.why;
+    };
+  });
+}
+
+/* =========================================================
+   Sheet plumbing
+   ========================================================= */
+function showSheet(html) {
+  sheet.innerHTML = html;
+  overlay.hidden = false;
+  sheet.querySelectorAll('[data-close]').forEach((b) => (b.onclick = closeSheet));
+  sheet.querySelectorAll('[data-again]').forEach((b) => (b.onclick = () => { closeSheet(); startRun(b.dataset.again); }));
+  sheet.querySelector('button')?.focus();
+}
+function closeSheet() { overlay.hidden = true; sheet.innerHTML = ''; }
+overlay.addEventListener('click', (e) => { if (e.target === overlay) closeSheet(); });
+window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !overlay.hidden) closeSheet(); });
+
+$('resetBtn').onclick = () => {
+  showSheet(`
+    <h2>Clear your save?</h2>
+    <p class="reason">Every plant, token and field guide entry goes back to the start. This cannot be undone.</p>
+    <div class="sheet-actions">
+      <button class="btn btn--full" style="background:var(--danger);color:#fff" id="confirmReset">Clear it</button>
+      <button class="btn btn--ghost btn--full" data-close>Keep my garden</button>
+    </div>`);
+  $('confirmReset').onclick = () => { S.reset(); selected = null; $('plotPanel').hidden = true; closeSheet(); };
+};
+})();
+</script>
+</body>
+</html>
