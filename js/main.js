@@ -376,11 +376,19 @@ function finishRun(id, res) {
 function showSheet(html) {
   sheet.innerHTML = html;
   overlay.hidden = false;
+  overlay.style.display = 'grid';
   sheet.querySelectorAll('[data-close]').forEach((b) => (b.onclick = closeSheet));
   sheet.querySelectorAll('[data-again]').forEach((b) => (b.onclick = () => { closeSheet(); startRun(b.dataset.again); }));
   sheet.querySelector('button')?.focus();
 }
-function closeSheet() { overlay.hidden = true; sheet.innerHTML = ''; }
+function closeSheet() {
+  overlay.hidden = true;
+  // Do not rely on [hidden] alone: a cached stylesheet that sets display on
+  // .overlay would leave an empty sheet floating over the page.
+  overlay.style.display = 'none';
+  sheet.innerHTML = '';
+}
+closeSheet();  // make sure nothing is stranded on first paint
 overlay.addEventListener('click', (e) => { if (e.target === overlay) closeSheet(); });
 window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !overlay.hidden) closeSheet(); });
 
