@@ -483,3 +483,56 @@ $('bootWindowed').onclick = () => dismissBoot();
 window.addEventListener('resize', () => {
   if (!play.hidden) gameCanvas.getBoundingClientRect();
 });
+
+
+/* =========================================================
+   3D garden, loaded opportunistically
+   =========================================================
+   If WebGL is missing or this import fails, the 2D canvas simply stays. */
+
+(async () => {
+  const c3 = $('garden3d');
+  const c2 = $('gardenCanvas');
+  const toggle = $('viewToggle');
+
+  const webglOK = (() => {
+    try {
+      const t = document.createElement('canvas');
+      return !!(t.getContext('webgl2') || t.getContext('webgl'));
+    } catch { return false; }
+  })();
+  if (!webglOK) return;
+
+  let g3;
+  try {
+    const mod = await import('./core/garden3d.js');
+    g3 = mod.initGarden3D(c3, {
+      plots: S.state.plots,
+      onSelect: (i) => { selectPlot(i); g3.focus(i); g3.sync(S.state, i); },
+    });
+  } catch (err) {
+    console.warn('3D garden unavailable, staying on 2D:', err);
+    return;
+  }
+
+  let is3D = true;
+  const apply = () => {
+    c3.hidden = !is3D;
+    c2.hidden = is3D;
+    toggle.textContent = is3D ? '2D view' : '3D view';
+    if (is3D) g3.sync(S.state, selected ?? -1);
+  };
+  toggle.hidden = false;
+  apply();
+
+  toggle.onclick = () => { is3D = !is3D; apply(); };
+
+  // keep the 3D plants in step with growth purchases
+  S.onChange(() => { if (is3D) g3.sync(S.state, selected ?? -1); });
+  g3.sync(S.state, -1);
+
+  // stop the camera drifting while the player is reading a plot panel
+  const panel = $('plotPanel');
+  const obs = new MutationObserver(() => g3.setAutoRotate(panel.hidden));
+  obs.observe(panel, { attributes: true, attributeFilter: ['hidden'] });
+})();

@@ -321,3 +321,19 @@ body.playing #gameCanvas{
 @media (max-aspect-ratio:2/3){
   body.playing #gameCanvas{width:100vw;height:auto}
 }
+
+
+/* ---------- 3D garden ---------- */
+.bed{position:relative}
+#garden3d{
+  display:block;width:100%;height:clamp(300px,46vh,460px);
+  margin-top:18px;border-radius:var(--r);
+  border:1px solid var(--line);
+  background:#1A3227;
+  cursor:grab;touch-action:none;
+}
+#garden3d:active{cursor:grabbing}
+.view-toggle{
+  position:absolute;right:12px;bottom:52px;z-index:3;
+  background:rgba(18,33,26,.82);backdrop-filter:blur(8px);
+}
