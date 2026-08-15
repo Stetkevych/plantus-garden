@@ -3682,6 +3682,14 @@ const gctx = gc.getContext('2d');
 const GW = 960, GH = 380, SOIL = 236;
 const plotX = (i) => 96 + i * 192;
 
+// The bed is a circular mound seen at a low angle: an ellipse cap whose top edge
+// is the soil line. Plants stand on that curve, so the middle beds sit higher.
+const MOUND = { cx: GW / 2, cy: 402, rx: 452, ry: 158 };
+const moundY = (x) => {
+  const t = (x - MOUND.cx) / MOUND.rx;
+  return MOUND.cy - MOUND.ry * Math.sqrt(Math.max(0, 1 - t * t));
+};
+
 (function scaleGarden() {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   gc.width = GW * dpr; gc.height = GH * dpr;
@@ -3705,46 +3713,83 @@ function drawGarden(now) {
   gctx.fillStyle = 'rgba(255,201,60,0.9)';
   circle(gctx, 862, 62, 21); gctx.fill();
 
-  // soil
-  const soil = gctx.createLinearGradient(0, SOIL, 0, GH);
-  soil.addColorStop(0, '#42301F');
-  soil.addColorStop(1, '#2A1D14');
+  // the mound
+  const soil = gctx.createLinearGradient(0, moundY(MOUND.cx), 0, GH);
+  soil.addColorStop(0, '#5A4128');
+  soil.addColorStop(0.45, '#42301F');
+  soil.addColorStop(1, '#241811');
   gctx.fillStyle = soil;
-  gctx.fillRect(0, SOIL, GW, GH - SOIL);
-  gctx.fillStyle = 'rgba(139,224,106,0.22)';
-  gctx.fillRect(0, SOIL, GW, 3);
+  gctx.beginPath();
+  gctx.ellipse(MOUND.cx, MOUND.cy, MOUND.rx, MOUND.ry, 0, Math.PI, 0);
+  gctx.lineTo(MOUND.cx + MOUND.rx, GH);
+  gctx.lineTo(MOUND.cx - MOUND.rx, GH);
+  gctx.closePath();
+  gctx.fill();
+
+  // grass rim along the crest
+  gctx.strokeStyle = 'rgba(139,224,106,0.32)';
+  gctx.lineWidth = 3;
+  gctx.beginPath();
+  gctx.ellipse(MOUND.cx, MOUND.cy, MOUND.rx, MOUND.ry, 0, Math.PI, 0);
+  gctx.stroke();
+  for (let i = 0; i < 90; i++) {
+    const x = 6 + (i / 89) * (GW - 12);
+    const y = moundY(x);
+    if (y >= GH - 2) continue;
+    gctx.strokeStyle = i % 3 ? 'rgba(139,224,106,0.30)' : 'rgba(95,181,68,0.42)';
+    gctx.lineWidth = 2;
+    gctx.beginPath();
+    gctx.moveTo(x, y + 2);
+    gctx.lineTo(x + Math.sin(gt * 1.2 + i) * 2.5, y - 7 - (i % 4) * 2);
+    gctx.stroke();
+  }
+
+  // texture: pebbles and clods, denser toward the front
+  for (let i = 0; i < 70; i++) {
+    const a = (i * 2.399) % (Math.PI * 2);
+    const rr2 = Math.sqrt((i % 17) / 17);
+    const x = MOUND.cx + Math.cos(a) * MOUND.rx * rr2 * 0.94;
+    const top = moundY(x);
+    const y = top + 14 + ((i * 37) % Math.max(1, Math.round(GH - top - 20)));
+    gctx.fillStyle = i % 5 === 0 ? 'rgba(234,242,226,0.06)' : 'rgba(0,0,0,0.16)';
+    circle(gctx, x, y, 1.6 + (i % 3));
+    gctx.fill();
+  }
 
   S.state.plots.forEach((plot, i) => {
     const x = plotX(i);
+    const base = moundY(x) + 6;
     const sp = SPECIES[plot.species];
     const isSel = selected === i;
 
     if (isSel) {
-      gctx.fillStyle = 'rgba(139,224,106,0.07)';
-      rr(gctx, x - 88, 22, 176, GH - 60, 18); gctx.fill();
-      gctx.strokeStyle = 'rgba(139,224,106,0.4)'; gctx.lineWidth = 2;
-      rr(gctx, x - 88, 22, 176, GH - 60, 18); gctx.stroke();
+      gctx.fillStyle = 'rgba(139,224,106,0.10)';
+      gctx.beginPath();
+      gctx.ellipse(x, base + 4, 74, 20, 0, 0, Math.PI * 2); gctx.fill();
+      gctx.strokeStyle = 'rgba(139,224,106,0.55)'; gctx.lineWidth = 2;
+      gctx.beginPath();
+      gctx.ellipse(x, base + 4, 74, 20, 0, 0, Math.PI * 2); gctx.stroke();
     }
 
     if (!plot.unlocked) {
       gctx.fillStyle = 'rgba(18,33,26,0.5)';
-      rr(gctx, x - 70, SOIL - 128, 140, 150, 14); gctx.fill();
+      rr(gctx, x - 70, base - 128, 140, 150, 14); gctx.fill();
       gctx.setLineDash([7, 7]);
       gctx.strokeStyle = 'rgba(234,242,226,0.28)'; gctx.lineWidth = 2;
-      rr(gctx, x - 70, SOIL - 128, 140, 150, 14); gctx.stroke();
+      rr(gctx, x - 70, base - 128, 140, 150, 14); gctx.stroke();
       gctx.setLineDash([]);
-      text(gctx, '✿', x, SOIL - 66, { size: 30, color: 'rgba(234,242,226,0.4)', align: 'center' });
-      text(gctx, `${PLOT_UNLOCK_COST[i]} plantus`, x, SOIL - 34, { size: 15, color: PALETTE.petal, align: 'center' });
-      text(gctx, 'to open this bed', x, SOIL - 16, { size: 11, color: 'rgba(234,242,226,0.45)', align: 'center', font: 'Karla, sans-serif', weight: 600 });
+      text(gctx, '✿', x, base - 66, { size: 30, color: 'rgba(234,242,226,0.4)', align: 'center' });
+      text(gctx, `${PLOT_UNLOCK_COST[i]} plantus`, x, base - 34, { size: 15, color: PALETTE.petal, align: 'center' });
+      text(gctx, 'to open this bed', x, base - 16, { size: 11, color: 'rgba(234,242,226,0.45)', align: 'center', font: 'Karla, sans-serif', weight: 600 });
     } else {
       gctx.fillStyle = 'rgba(0,0,0,0.22)';
-      gctx.beginPath(); gctx.ellipse(x, SOIL + 6, 44, 9, 0, 0, Math.PI * 2); gctx.fill();
-      drawPlant(gctx, x, SOIL, 214, plot.species, plot.stage, gt + i);
+      gctx.beginPath(); gctx.ellipse(x, base + 6, 46, 10, 0, 0, Math.PI * 2); gctx.fill();
+      drawPlant(gctx, x, base, 214, plot.species, plot.stage, gt + i);
 
       if (plot.stage === MAX_STAGE) {
         for (let k = 0; k < 3; k++) {
           const px = x + Math.sin(gt * 0.9 + k * 2.1) * 52;
-          const py = SOIL - 150 + Math.cos(gt * 1.3 + k) * 26;
+          const py = base - 150 + Math.cos(gt * 1.3 + k) * 26;
           gctx.fillStyle = 'rgba(255,201,60,0.75)';
           circle(gctx, px, py, 2.6); gctx.fill();
         }
