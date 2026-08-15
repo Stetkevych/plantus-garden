@@ -4,6 +4,11 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
 <meta name="theme-color" content="#12211A" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Plantus" />
+<link rel="manifest" href="manifest.webmanifest" />
 <title>Plantus Garden — grow it, then play for it</title>
 <meta name="description" content="Five botanical mini-games feed one garden. Win sun tokens, spend them on growth, earn plantus." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -12,6 +17,16 @@
 <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
+
+<div id="boot" class="boot">
+  <div class="boot-inner">
+    <span class="boot-mark" aria-hidden="true"></span>
+    <h1>Plantus<em>Garden</em></h1>
+    <p>Five games. One garden.</p>
+    <button class="btn btn--xl" id="bootPlay">Play</button>
+    <button class="link-btn" id="bootWindowed">stay windowed</button>
+  </div>
+</div>
 
 <header class="topbar">
   <button class="brand" id="homeBtn" aria-label="Back to the garden">

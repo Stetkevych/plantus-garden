@@ -293,6 +293,7 @@ function startRun(id) {
   $('playHint').textContent = meta.hint;
   hub.hidden = true;
   play.hidden = false;
+  document.body.classList.add('playing');
   window.scrollTo(0, 0);
 
   const game = FACTORIES[id]();
@@ -313,6 +314,7 @@ function endRunCleanup() {
   if (runInput) { runInput.destroy(); runInput = null; }
   play.hidden = true;
   hub.hidden = false;
+  document.body.classList.remove('playing');
 }
 
 $('quitBtn').onclick = () => endRunCleanup();
@@ -391,3 +393,38 @@ $('resetBtn').onclick = () => {
     </div>`);
   $('confirmReset').onclick = () => { S.reset(); selected = null; $('plotPanel').hidden = true; closeSheet(); };
 };
+
+
+/* =========================================================
+   Boot screen and distraction-free play
+   ========================================================= */
+
+// Fullscreen can only be requested from a real user gesture, which is what the
+// Play button is for. iOS Safari has no Fullscreen API on iPhone, so the PWA
+// manifest covers that case instead ("Add to Home Screen").
+function goFullscreen() {
+  const el = document.documentElement;
+  const fn = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+  if (fn) { try { fn.call(el, { navigationUI: 'hide' }); } catch { fn.call(el); } }
+}
+function exitFullscreen() {
+  const fn = document.exitFullscreen || document.webkitExitFullscreen;
+  if (fn && (document.fullscreenElement || document.webkitFullscreenElement)) {
+    try { fn.call(document); } catch { /* already out */ }
+  }
+}
+
+const boot = $('boot');
+function dismissBoot() {
+  boot.style.opacity = '0';
+  boot.style.transition = 'opacity .25s ease';
+  setTimeout(() => { boot.hidden = true; boot.style.display = 'none'; }, 250);
+  document.querySelector('.games')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+$('bootPlay').onclick = () => { goFullscreen(); dismissBoot(); };
+$('bootWindowed').onclick = () => dismissBoot();
+
+// Keep the canvas crisp when the viewport changes (rotation, fullscreen toggle).
+window.addEventListener('resize', () => {
+  if (!play.hidden) gameCanvas.getBoundingClientRect();
+});
