@@ -19,6 +19,11 @@
 }
 
 *{box-sizing:border-box}
+
+/* The hidden attribute must win. Author display rules (.overlay uses grid,
+   #play uses flex) otherwise override the UA's display:none and leave the
+   results sheet and play view permanently on screen. */
+[hidden]{display:none !important}
 html,body{margin:0;padding:0}
 body{
   background:

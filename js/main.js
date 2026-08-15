@@ -21,6 +21,7 @@ const FACTORIES = {
 };
 const GLYPH = { vine: '🌿', clouds: '☁', bee: '🐝', seeds: '🌰', survivors: '🛡' };
 
+const BUILD = 'b4';
 const $ = (id) => document.getElementById(id);
 const hub = $('hub'), play = $('play'), overlay = $('overlay'), sheet = $('sheet');
 
@@ -421,6 +422,7 @@ function dismissBoot() {
   setTimeout(() => { boot.hidden = true; boot.style.display = 'none'; }, 250);
   document.querySelector('.games')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
+document.querySelector('.boot-inner p').textContent = `Five games. One garden. \u00b7 ${BUILD}`;
 $('bootPlay').onclick = () => { goFullscreen(); dismissBoot(); };
 $('bootWindowed').onclick = () => dismissBoot();
 
