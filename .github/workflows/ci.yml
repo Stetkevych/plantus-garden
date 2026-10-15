@@ -7,6 +7,27 @@ on:
   workflow_dispatch:
 
 jobs:
+  api:
+    name: api unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install the AWS SDK the Lambda runtime provides
+        working-directory: backend
+        run: npm install --no-audit --no-fund
+      - name: Parse and normalise model output
+        working-directory: backend
+        run: npm test
+      - name: Check the single-file build still assembles
+        run: node build/build-single-file.mjs
+      - name: Unity data converts cleanly and is up to date
+        run: node tools/unity-to-js.mjs && git diff --exit-code lab/plants.js
+      - name: Lab rules (growing table, unlocks, combat)
+        run: node test/lab.test.mjs
+
   smoke:
     name: crash harness
     runs-on: ubuntu-latest
