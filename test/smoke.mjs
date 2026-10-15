@@ -6,6 +6,8 @@ import { createCloudBarrage } from '../js/games/cloud-barrage.js';
 import { createBeeRush } from '../js/games/bee-rush.js';
 import { createSeedCrush } from '../js/games/seed-crush.js';
 import { createPlantSurvivors } from '../js/games/plant-survivors.js';
+import { createForestDash } from '../js/games/forest-dash.js';
+import { createSeedStorm } from '../js/games/seed-storm.js';
 
 function fakeCtx() {
   const noop = () => {};
@@ -56,6 +58,8 @@ const CASES = [
   ['Bee Rush', createBeeRush, 'keys'],
   ['Seed Crush', createSeedCrush, 'pointer'],
   ['Plant Survivors', createPlantSurvivors, 'pointer'],
+  ['Forest Dash', createForestDash, 'keys'],
+  ['Seed Storm', createSeedStorm, 'pointer'],
 ];
 
 const RUNS = 40;

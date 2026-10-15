@@ -2,7 +2,7 @@
 
 A biology learning platform built around plants. Photograph a real plant and get a
 field-guide synopsis of what it is. Every find is pressed into your **herbarium**.
-Keep a living **digital garden** watered, and play five botanical arcade games. All of
+Keep a living **digital garden** watered, and play seven botanical arcade games. All of
 it feeds one points economy: **sun** tokens and **plantus** tokens.
 
 **Live:** https://d2pxu1hyg5qt5r.cloudfront.net
@@ -12,7 +12,7 @@ it feeds one points economy: **sun** tokens and **plantus** tokens.
 | 🌱 Garden | Five beds that grow through six stages. Soil moisture drains in real time, at a different rate for each species. Wilted or waterlogged plants will not grow. Keeping every bed healthy pays a daily care streak. |
 | 📷 Scan | Take or upload a photo and Bedrock identifies it. You get the common and scientific names, family, confidence, the features that support the ID, care needs, native range, toxicity, lookalikes, and a biology fact linked to a field guide topic. |
 | 📚 Herbarium | Every species you have found, with photos, dates and optional location. Search, filter by plant type, rank up from *Seed collector* to *Master botanist*. |
-| 🎮 Games | Five mini-games (below) that pay sun. |
+| 🎮 Games | Seven mini-games (below) that pay sun. |
 | 🧪 Lab | A standalone prototype of the Unity design, at [`/lab/index.html`](https://d2pxu1hyg5qt5r.cloudfront.net/lab/index.html). See below. |
 
 ---
@@ -154,6 +154,8 @@ Current medians for a competent run:
 | Bee Rush | 2414 | 98 | endless |
 | Seed Crush | 5570 | 61 | 83% |
 | Plant Survivors | 1052 | 56 | 10% |
+| Forest Dash | ~10000 | ~65 | endless |
+| Seed Storm | ~2000 | ~65 | ~20% |
 
 Payout rates in `js/data/config.js` are tuned so no game is a shortcut.
 
@@ -181,7 +183,7 @@ mini-game  ──►  sun tokens  ──►  spend on growth  ──►  plantus
 Costs scale per species (`costMul`): a cactus is cheaper, an oak is much dearer.
 Every stage-up pays plantus and unlocks a field guide entry.
 
-## The five games
+## The seven games
 
 **Vine Garden** — Snake. Your vine never stops growing, so the challenge is routing
 around damage. Nodes become leaves, then buds, then blooms *on your own body* as you
@@ -212,12 +214,28 @@ positioning, because the pests are hunting the three plants, not you. Pollen orb
 level you up and every upgrade on offer is a real plant defence — thicker bark, root
 recovery, pollen nova, wider roots. Hold the beds for 120 seconds.
 
+**Forest Dash** is a three-lane runner on a pseudo-3D forest trail, and the runner
+is *your* plant: the most-grown bed in your garden, in its current stage, scurrying
+on root legs. Jump fallen logs and brambles, slide under low branches, and switch
+lanes around stumps. You are also drying out the whole time, so water drops are fuel.
+Sunflecks are the big prize, as they are for real understory plants. Sap shields and
+root reach (a drop magnet) turn up in the open lane. Deeper in, some rows wall off all
+three lanes, so you have to read which one you can jump or slide through.
+
+**Seed Storm** is an arena shooter. Your plant is rooted in the middle of a clearing,
+and aphid swarms, wasps, slugs and beetles pour in from every side. Move inside the
+ring to dodge, and your seed pod fires at the nearest threat by itself. Hailstones
+can't be shot: a red line warns where each one will cross, so get out of the way.
+Every kill ripens the pod, and a ripe pod splits in a 360° burst that shoves
+everything back (explosive dispersal). Hold out for 90 seconds.
+
 ## The biology layer
 
 Learning is on the reward path rather than bolted on:
 
-- **Field guide** — 16 entries on photosynthesis, stomata, xylem and phloem,
-  transpiration, germination, pollination, tropism, dispersal and plant defence.
+- **Field guide** — 18 entries on photosynthesis, stomata, xylem and phloem,
+  transpiration, germination, pollination, tropism, dispersal, sunflecks, explosive
+  seed pods and plant defence.
   Entries unlock by growing plants and by playing each game for the first time.
 - **Post-run quiz** — one question drawn from the game you just played. Correct
   answers pay 15 sun, and wrong ones still explain the answer.
@@ -287,6 +305,8 @@ account, the newer save wins. Otherwise the save that has progressed further win
 | Bee Rush | ← → lanes, ↑ hop | swipe |
 | Seed Crush | — | tap two seeds, or drag |
 | Plant Survivors | WASD, 1/2/3 to pick upgrades | drag to move, tap a card |
+| Forest Dash | ← → lanes, ↑ jump, ↓ slide | swipe |
+| Seed Storm | WASD, space to burst the pod | drag to move, tap your pod to burst |
 
 ## Known limits
 

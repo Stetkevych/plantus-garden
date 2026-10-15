@@ -648,7 +648,7 @@ body.playing .tabs{display:none}
   <section class="games">
     <div class="section-head">
       <p class="eyebrow">Mini-games</p>
-      <h2>Five ways to earn sun</h2>
+      <h2>Seven ways to earn sun</h2>
     </div>
     <div class="game-grid" id="gameGrid"></div>
   </section>
@@ -854,6 +854,8 @@ const SUN_RATE = {
   bee: 0.041,
   seeds: 0.011,
   survivors: 0.054,
+  dash: 0.0064,
+  storm: 0.033,
 };
 
 const GAMES = [
@@ -862,6 +864,8 @@ const GAMES = [
   { id: 'bee',       title: 'Bee Rush',        tag: 'Endless runner', verb: 'Pollinate at speed',      hint: 'Left / right / up to hop' },
   { id: 'seeds',     title: 'Seed Crush',      tag: 'Match 3',        verb: 'Match and germinate',     hint: 'Drag a seed onto its neighbour' },
   { id: 'survivors', title: 'Plant Survivors', tag: 'Survivor-like',  verb: 'Defend the beds',         hint: 'WASD / drag to move' },
+  { id: 'dash',      title: 'Forest Dash',     tag: 'Lane runner',    verb: 'Run your plant through the woods', hint: '← → lanes · ↑ jump · ↓ slide' },
+  { id: 'storm',     title: 'Seed Storm',      tag: 'Arena shooter',  verb: 'Hold the clearing',       hint: 'WASD / drag · SPACE bursts the pod' },
 ];
 
 const cost = (species, stage) =>
@@ -992,6 +996,16 @@ const FACTS = {
     body: 'A bud is a packed-up flower. When the plant has enough stored sugar it commits to opening — an expensive, one-shot investment.',
     tag: 'Flower',
   },
+  sunflecks: {
+    title: 'Sunflecks',
+    body: 'On a forest floor, brief patches of direct sun slipping through the canopy can supply over half of an understory plant\'s daily photosynthesis.',
+    tag: 'Leaf',
+  },
+  ballistic: {
+    title: 'Explosive dispersal',
+    body: 'Some pods dry unevenly until tension splits them open and flings the seeds. The sandbox tree launches seeds at over 200 km/h.',
+    tag: 'Seed',
+  },
 };
 
 // Which fact is awarded when a plant reaches each stage.
@@ -1004,6 +1018,8 @@ const GAME_FACTS = {
   bee: 'nectar',
   seeds: 'seeddispersal',
   survivors: 'defence',
+  dash: 'sunflecks',
+  storm: 'ballistic',
 };
 
 // Post-game quiz. One question, drawn from the game you just played.
@@ -1062,6 +1078,28 @@ const QUIZ = {
     { q: 'Fungal attacks spread fastest when leaves are:',
       a: ['Dry and airy', 'Wet and crowded', 'Cold and bright'], correct: 1,
       why: 'Spores need moisture to germinate on the leaf surface.' },
+  ],
+  dash: [
+    { q: 'Roughly how much of full sunlight reaches a dense forest floor?',
+      a: ['A few percent', 'About half', 'All of it'], correct: 0,
+      why: 'The canopy intercepts almost everything, which is why sunflecks matter so much.' },
+    { q: 'Why does a running plant need to keep collecting water?',
+      a: ['Leaves lose water by transpiration all the time', 'Water makes it faster', 'Roots store none at all'], correct: 0,
+      why: 'Open stomata let CO2 in and water vapour out, constantly.' },
+    { q: 'A sunfleck is:',
+      a: ['A brief patch of direct sun through a canopy gap', 'A yellow leaf', 'A type of pollen'], correct: 0,
+      why: 'Understory plants are tuned to switch photosynthesis on fast when one arrives.' },
+  ],
+  storm: [
+    { q: 'What makes an explosive seed pod burst?',
+      a: ['Tension built up as the pod walls dry unevenly', 'Insects biting it', 'Rain filling it up'], correct: 0,
+      why: 'Uneven drying stores elastic energy until the seam gives way.' },
+    { q: 'Why do plants throw seeds away from themselves?',
+      a: ['Less competition with the parent for light and water', 'Seeds dislike the parent', 'To keep the soil tidy'], correct: 0,
+      why: 'A seedling under its parent is shaded and out-rooted.' },
+    { q: 'Aphids harm plants mainly by:',
+      a: ['Sucking sugary sap out of the phloem', 'Chewing the roots', 'Blocking sunlight'], correct: 0,
+      why: 'They tap straight into the phloem, the plant\'s sugar pipeline.' },
   ],
 };
 
@@ -4857,6 +4895,766 @@ function drawPest(ctx, p, t) {
 }
 return createPlantSurvivors;
 })();
+
+/* ===== js/games/forest-dash.js ===== */
+const createForestDash = (() => {
+// forest-dash.js — Three-lane forest runner in pseudo-3D. Your own plant runs the
+// trail on its roots: jump fallen logs, slide under low branches, switch lanes
+// around stumps. It is also drying out the whole time, so water drops are not
+// a bonus, they are fuel — and sunflecks are the big prize, as they are for
+// every real plant on a shaded forest floor.
+// Projection: world distance d (0 = the player, FAR = horizon) maps to a scale.
+const HY = 210;                // horizon line
+const PY = 612;                // the player's feet
+const FOCAL = 9;
+const FAR = 70;
+const LANE_W = 150;            // lane spacing at the player's depth
+const scaleAt = (d) => FOCAL / (FOCAL + Math.max(-FOCAL * 0.9, d));
+const yAt = (d) => HY + (PY - HY) * scaleAt(d);
+const xAt = (lane, d) => VW / 2 + (lane - 1) * LANE_W * scaleAt(d);
+
+const OBSTACLES = {
+  log:    { name: 'Fallen log',   need: 'jump',  color: PALETTE.bark },
+  branch: { name: 'Low branch',   need: 'slide', color: '#6E4629' },
+  stump:  { name: 'Tree stump',   need: 'lane',  color: '#7A5233' },
+  thorns: { name: 'Bramble patch', need: 'jump', color: '#9C4A5A' },
+};
+
+const PICKUPS = {
+  drop:     { color: PALETTE.rain },
+  sunfleck: { color: PALETTE.pollen },
+  sap:      { color: '#FF9F45' },      // shield
+  magnet:   { color: '#C79BE8' },
+};
+
+function createForestDash({ species = 'sunflower', stage = 3 } = {}) {
+  const g = {
+    species, stage: clamp(stage, 2, 5),
+    lane: 1, x: VW / 2,
+    jump: 0,            // seconds left in the air
+    slide: 0,           // seconds left sliding
+    speed: 16,          // world units per second
+    dist: 0,
+    score: 0,
+    water: 100,
+    leaves: 3,
+    shield: false,
+    magnetT: 0,
+    invuln: 0,
+    combo: 0,
+    bestCombo: 0,
+    drops: 0,
+    flecks: 0,
+    dodged: 0,
+    items: [],
+    trees: [],
+    rowT: 0.6,
+    fx: new Particles(),
+    floats: new Floaters(),
+    t: 0,
+    shake: 0,
+    over: false,
+    reason: '',
+    banner: '', bannerT: 0, bannerColor: PALETTE.pollen,
+  };
+
+  for (let d = 2; d < FAR; d += 4) g.trees.push(tree(d));
+
+  function tree(d) {
+    return { d, side: Math.random() < 0.5 ? -1 : 1, off: 1.9 + Math.random() * 1.6, h: 0.8 + Math.random() * 0.6, hue: Math.random() };
+  }
+
+  const mult = () => (g.combo >= 20 ? 3 : g.combo >= 8 ? 2 : 1);
+  const say = (msg, color = PALETTE.pollen) => { g.banner = msg; g.bannerT = 1.4; g.bannerColor = color; };
+
+  /** One row of the trail. At least one lane is always passable by lane-switching. */
+  function spawnRow() {
+    const lanes = [0, 1, 2].sort(() => Math.random() - 0.5);
+    // Deep in the woods, some rows wall off every lane: one of them is always a
+    // log or a branch, so there is still a way through if you read it in time.
+    if (g.dist > 900 && Math.random() < Math.min(0.35, (g.dist - 900) / 5000)) {
+      const way = pick(['log', 'branch', 'thorns']);
+      g.items.push({ kind: 'obs', type: way, lane: lanes[0], d: FAR });
+      g.items.push({ kind: 'obs', type: pick(['stump', way === 'branch' ? 'log' : 'branch']), lane: lanes[1], d: FAR });
+      g.items.push({ kind: 'obs', type: 'stump', lane: lanes[2], d: FAR });
+      return;
+    }
+    const hard = Math.min(0.75, 0.35 + g.dist / 4000);
+    const nObs = Math.random() < hard ? 2 : 1;
+    for (let i = 0; i < nObs; i++) {
+      const type = pick(i === 0 ? ['log', 'branch', 'stump', 'thorns'] : ['log', 'branch', 'thorns', 'stump']);
+      g.items.push({ kind: 'obs', type, lane: lanes[i], d: FAR });
+    }
+    // the open lane often carries something worth having
+    const free = lanes[nObs];
+    const r = Math.random();
+    if (r < 0.06) g.items.push({ kind: 'pick', type: pick(['sap', 'magnet']), lane: free, d: FAR });
+    else if (r < 0.2) g.items.push({ kind: 'pick', type: 'sunfleck', lane: free, d: FAR });
+    else if (r < 0.85) for (let k = 0; k < 3; k++) g.items.push({ kind: 'pick', type: 'drop', lane: free, d: FAR + k * 2.2 });
+  }
+
+  function hit(item) {
+    const o = OBSTACLES[item.type];
+    g.combo = 0;
+    if (g.shield) {
+      g.shield = false;
+      g.invuln = 1;
+      g.fx.burst(g.x, PY - 60, PICKUPS.sap.color, 20, 200);
+      say('Sap shield sealed the wound', PICKUPS.sap.color);
+      return;
+    }
+    g.leaves -= 1;
+    g.invuln = 1.2;
+    g.shake = 0.35;
+    g.fx.burst(g.x, PY - 50, PALETTE.chloro, 16, 180);
+    say(`${o.name}! Lost a leaf`, PALETTE.danger);
+    if (g.leaves <= 0) { g.over = true; g.reason = `${o.name} took your last leaf after ${Math.floor(g.dist)} m.`; }
+  }
+
+  function collect(item) {
+    const p = PICKUPS[item.type];
+    if (item.type === 'drop') {
+      g.water = Math.min(100, g.water + 7);
+      g.drops += 1;
+      g.combo += 1;
+      g.bestCombo = Math.max(g.bestCombo, g.combo);
+      const pts = 10 * mult();
+      g.score += pts;
+      g.floats.add(g.x, PY - 120, `+${pts}`, PALETTE.rain, 15);
+    } else if (item.type === 'sunfleck') {
+      g.flecks += 1;
+      const pts = 60 * mult();
+      g.score += pts;
+      g.floats.add(g.x, PY - 130, `+${pts} sunfleck`, PALETTE.pollen, 18);
+      say('Sunfleck! A burst of full light');
+    } else if (item.type === 'sap') {
+      g.shield = true;
+      say('Sap shield', p.color);
+    } else if (item.type === 'magnet') {
+      g.magnetT = 8;
+      say('Root reach: drops come to you', p.color);
+    }
+    g.fx.burst(g.x, PY - 80, p.color, 8, 120, 0.4);
+  }
+
+  g.input = (input) => {
+    if (input.hit('arrowleft', 'a') || input.swipe === 'left') g.lane = Math.max(0, g.lane - 1);
+    if (input.hit('arrowright', 'd') || input.swipe === 'right') g.lane = Math.min(2, g.lane + 1);
+    if ((input.hit('arrowup', 'w', ' ') || input.swipe === 'up') && g.jump <= 0) { g.jump = 0.62; g.slide = 0; }
+    if ((input.hit('arrowdown', 's') || input.swipe === 'down') && g.slide <= 0) { g.slide = 0.6; g.jump = 0; }
+  };
+
+  g.update = (dt) => {
+    if (g.over) return;
+    g.t += dt;
+    g.speed = Math.min(54, 16 + g.dist / 90);
+    const step = g.speed * dt;
+    g.dist += step;
+    g.score += step * 0.5 * mult();
+    g.x += (xAt(g.lane, 0) - g.x) * Math.min(1, dt * 16);
+    g.jump = Math.max(0, g.jump - dt);
+    g.slide = Math.max(0, g.slide - dt);
+    g.invuln = Math.max(0, g.invuln - dt);
+    g.magnetT = Math.max(0, g.magnetT - dt);
+    g.shake = Math.max(0, g.shake - dt);
+    g.bannerT = Math.max(0, g.bannerT - dt);
+
+    // transpiration never stops
+    g.water -= dt * (3.2 + g.speed * 0.06);
+    if (g.water <= 0) { g.water = 0; g.over = true; g.reason = `Dried out after ${Math.floor(g.dist)} m. Water drops are fuel, not a bonus.`; }
+
+    g.rowT -= dt * (g.speed / 16);
+    if (g.rowT <= 0) { spawnRow(); g.rowT = Math.max(0.42, 1.15 - g.dist / 2500); }
+
+    for (const tr of g.trees) { tr.d -= step; if (tr.d < -2) Object.assign(tr, tree(FAR)); }
+
+    for (let i = g.items.length - 1; i >= 0; i--) {
+      const it = g.items[i];
+      const was = it.d;
+      it.d -= step;
+      if (it.kind === 'pick' && g.magnetT > 0 && it.type === 'drop' && it.d < 14) it.lane = g.lane;
+      // resolve when the item crosses the player's depth
+      if (was > 0.6 && it.d <= 0.6) {
+        if (it.kind === 'obs' && it.lane === g.lane && g.invuln <= 0) {
+          const need = OBSTACLES[it.type].need;
+          const cleared = (need === 'jump' && g.jump > 0) || (need === 'slide' && g.slide > 0);
+          if (cleared) {
+            g.dodged += 1;
+            const pts = 15 * mult();
+            g.score += pts;
+            g.floats.add(g.x, PY - 140, need === 'jump' ? `hop +${pts}` : `duck +${pts}`, PALETTE.chloro, 14);
+          } else hit(it);
+        } else if (it.kind === 'obs') {
+          g.dodged += 1;
+        } else if (it.kind === 'pick' && it.lane === g.lane) {
+          collect(it);
+          g.items.splice(i, 1);
+          continue;
+        }
+      }
+      if (it.d < -3) g.items.splice(i, 1);
+    }
+    g.fx.update(dt);
+    g.floats.update(dt);
+  };
+
+  g.draw = (ctx) => {
+    ctx.save();
+    if (g.shake > 0) ctx.translate((Math.random() - 0.5) * 8, (Math.random() - 0.5) * 8);
+
+    // canopy sky with shafts of light
+    const sky = ctx.createLinearGradient(0, 0, 0, HY);
+    sky.addColorStop(0, '#142A20');
+    sky.addColorStop(1, '#2C5340');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, VW, HY + 2);
+    for (let k = 0; k < 4; k++) {
+      const x = ((k * 137 + g.dist * 0.6) % (VW + 200)) - 100;
+      ctx.fillStyle = 'rgba(255,214,107,0.06)';
+      ctx.beginPath(); ctx.moveTo(x, 46); ctx.lineTo(x + 50, 46); ctx.lineTo(x + 170, VH); ctx.lineTo(x + 60, VH); ctx.closePath(); ctx.fill();
+    }
+
+    // forest floor
+    const floor = ctx.createLinearGradient(0, HY, 0, VH);
+    floor.addColorStop(0, '#20402F');
+    floor.addColorStop(1, '#3B2A1B');
+    ctx.fillStyle = floor;
+    ctx.fillRect(0, HY, VW, VH - HY);
+
+    // the trail: a dirt band narrowing to the horizon, with lane seams
+    const edge = (side, d) => VW / 2 + side * LANE_W * 1.6 * scaleAt(d);
+    ctx.fillStyle = '#5A4128';
+    ctx.beginPath();
+    ctx.moveTo(edge(-1, FAR), yAt(FAR)); ctx.lineTo(edge(1, FAR), yAt(FAR));
+    ctx.lineTo(edge(1, -1.5), yAt(-1.5)); ctx.lineTo(edge(-1, -1.5), yAt(-1.5));
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.18)'; ctx.lineWidth = 2;
+    for (const s of [-0.5, 0.5]) {
+      ctx.beginPath(); ctx.moveTo(VW / 2 + s * LANE_W * 2 * scaleAt(FAR), yAt(FAR)); ctx.lineTo(VW / 2 + s * LANE_W * 2 * scaleAt(-1.5), yAt(-1.5)); ctx.stroke();
+    }
+    // moving ground ticks sell the speed
+    ctx.fillStyle = 'rgba(0,0,0,0.16)';
+    for (let d = (-(g.dist % 5)) + 5; d < FAR; d += 5) {
+      const s = scaleAt(d);
+      ctx.fillRect(VW / 2 - LANE_W * 1.5 * s, yAt(d), LANE_W * 3 * s, Math.max(1, 3 * s));
+    }
+
+    // far-to-near: trees and items interleaved by depth
+    const things = [
+      ...g.trees.map((tr) => ({ d: tr.d, draw: () => drawTree(ctx, tr) })),
+      ...g.items.map((it) => ({ d: it.d, draw: () => drawItem(ctx, it, g.t) })),
+    ].filter((o) => o.d > -1.5).sort((a, b) => b.d - a.d);
+    for (const o of things) if (o.d > 0.6) o.draw();
+
+    // the runner
+    const air = g.jump > 0 ? Math.sin((1 - g.jump / 0.62) * Math.PI) : 0;
+    const py = PY - air * 120;
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.beginPath(); ctx.ellipse(g.x, PY + 4, 34 - air * 12, 9, 0, 0, Math.PI * 2); ctx.fill();
+    if (g.invuln > 0 && Math.floor(g.t * 14) % 2) ctx.globalAlpha = 0.45;
+    drawRunner(ctx, g.x, py, g.species, g.stage, g.t, g.slide > 0, g.water);
+    ctx.globalAlpha = 1;
+    if (g.shield) {
+      ctx.strokeStyle = 'rgba(255,159,69,0.75)'; ctx.lineWidth = 3;
+      circle(ctx, g.x, py - 55, 62); ctx.stroke();
+    }
+    for (const o of things) if (o.d <= 0.6) o.draw();
+
+    g.fx.draw(ctx);
+    g.floats.draw(ctx);
+    ctx.restore();
+
+    // HUD
+    hudBar(ctx, { score: Math.floor(g.score), label: mult() > 1 ? `×${mult()} streak` : `${Math.floor(g.dist)} m`, right: '🍃'.repeat(g.leaves) });
+    rr(ctx, 14, 56, 160, 12, 6); ctx.fillStyle = 'rgba(18,33,26,0.8)'; ctx.fill();
+    rr(ctx, 14, 56, 1.6 * g.water, 12, 6); ctx.fillStyle = g.water < 25 ? PALETTE.danger : PALETTE.rain; ctx.fill();
+    text(ctx, g.water < 25 ? 'drying out!' : 'water', 182, 66, { size: 12, color: g.water < 25 ? PALETTE.danger : PALETTE.rain, weight: 700, font: 'Karla, sans-serif' });
+    if (g.magnetT > 0) text(ctx, `root reach ${Math.ceil(g.magnetT)}s`, VW - 14, 66, { size: 12, color: PICKUPS.magnet.color, align: 'right', font: 'Karla, sans-serif' });
+    if (g.bannerT > 0) {
+      ctx.globalAlpha = Math.min(1, g.bannerT * 2);
+      text(ctx, g.banner, VW / 2, 120, { size: 20, color: g.bannerColor, align: 'center' });
+      ctx.globalAlpha = 1;
+    }
+    if (g.t < 3.5) {
+      text(ctx, '← → switch lanes · ↑ jump logs · ↓ slide under branches', VW / 2, 150, { size: 13, color: 'rgba(234,242,226,0.75)', align: 'center', font: 'Karla, sans-serif', weight: 600 });
+    }
+  };
+
+  g.result = () => ({
+    score: Math.floor(g.score),
+    sun: Math.max(1, Math.floor(g.score * SUN_RATE.dash)),
+    reason: g.reason || 'Run complete.',
+    stats: [
+      ['Distance', `${Math.floor(g.dist)} m`],
+      ['Sunflecks caught', g.flecks],
+      ['Water drops', g.drops],
+      ['Obstacles cleared', g.dodged],
+      ['Best streak', g.bestCombo],
+    ],
+    lesson: 'Under a forest canopy, a plant gets only a few percent of full sunlight. Brief sunflecks that slip through gaps can supply more than half of an understory plant\'s daily photosynthesis, which is why they are worth the detour.',
+  });
+
+  return g;
+}
+
+/* ---------------- drawing ---------------- */
+
+function drawTree(ctx, tr) {
+  const s = scaleAt(tr.d);
+  const x = VW / 2 + tr.side * LANE_W * tr.off * s * 1.3;
+  const y = yAt(tr.d);
+  const h = 260 * tr.h * s;
+  ctx.fillStyle = '#4A3220';
+  ctx.fillRect(x - 10 * s, y - h, 20 * s, h);
+  ctx.fillStyle = tr.hue < 0.5 ? '#2E6B3F' : '#3D7F48';
+  circle(ctx, x, y - h, 70 * s); ctx.fill();
+  ctx.fillStyle = 'rgba(139,224,106,0.18)';
+  circle(ctx, x - 20 * s, y - h - 18 * s, 38 * s); ctx.fill();
+}
+
+function drawItem(ctx, it, t) {
+  const s = scaleAt(it.d);
+  const x = xAt(it.lane, it.d), y = yAt(it.d);
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(s, s);
+  if (it.kind === 'obs') {
+    const o = OBSTACLES[it.type];
+    ctx.fillStyle = o.color;
+    if (it.type === 'log') {
+      rr(ctx, -62, -34, 124, 34, 16); ctx.fill();
+      ctx.fillStyle = '#B98453'; ctx.beginPath(); ctx.ellipse(-58, -17, 10, 16, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#6E4629'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(-58, -17, 5, 9, 0, 0, Math.PI * 2); ctx.stroke();
+    } else if (it.type === 'branch') {
+      // posts at the lane edges, a bough across at head height
+      ctx.fillRect(-64, -150, 10, 150); ctx.fillRect(54, -150, 10, 150);
+      rr(ctx, -72, -152, 144, 22, 10); ctx.fill();
+      ctx.fillStyle = PALETTE.chloroDk;
+      for (let k = -2; k <= 2; k++) { circle(ctx, k * 28, -126, 12); ctx.fill(); }
+    } else if (it.type === 'stump') {
+      rr(ctx, -48, -96, 96, 96, 10); ctx.fill();
+      ctx.fillStyle = '#B98453'; ctx.beginPath(); ctx.ellipse(0, -96, 48, 14, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#7A5233'; ctx.lineWidth = 2;
+      for (const r of [10, 22, 34]) { ctx.beginPath(); ctx.ellipse(0, -96, r, r * 0.29, 0, 0, Math.PI * 2); ctx.stroke(); }
+    } else {
+      ctx.strokeStyle = o.color; ctx.lineWidth = 4;
+      for (let k = -3; k <= 3; k++) {
+        ctx.beginPath(); ctx.moveTo(k * 16, 0);
+        ctx.quadraticCurveTo(k * 16 + 14, -26, k * 16 - 4, -34); ctx.stroke();
+      }
+      ctx.fillStyle = PALETTE.petal;
+      for (let k = -2; k <= 2; k += 2) { circle(ctx, k * 16, -30, 4); ctx.fill(); }
+    }
+  } else {
+    const bob = Math.sin(t * 5 + it.d) * 6;
+    if (it.type === 'drop') {
+      ctx.fillStyle = PALETTE.rain;
+      ctx.beginPath(); ctx.moveTo(0, -64 + bob); ctx.quadraticCurveTo(16, -38 + bob, 0, -28 + bob); ctx.quadraticCurveTo(-16, -38 + bob, 0, -64 + bob); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.6)'; circle(ctx, -4, -42 + bob, 3); ctx.fill();
+    } else if (it.type === 'sunfleck') {
+      ctx.fillStyle = 'rgba(255,201,60,0.25)'; circle(ctx, 0, -60 + bob, 34); ctx.fill();
+      ctx.fillStyle = PALETTE.pollen; circle(ctx, 0, -60 + bob, 18); ctx.fill();
+      ctx.strokeStyle = PALETTE.pollen; ctx.lineWidth = 3;
+      for (let k = 0; k < 8; k++) {
+        const a = k * Math.PI / 4 + t;
+        ctx.beginPath(); ctx.moveTo(Math.cos(a) * 24, -60 + bob + Math.sin(a) * 24); ctx.lineTo(Math.cos(a) * 32, -60 + bob + Math.sin(a) * 32); ctx.stroke();
+      }
+    } else {
+      const c = PICKUPS[it.type].color;
+      ctx.fillStyle = 'rgba(18,33,26,0.85)'; circle(ctx, 0, -60 + bob, 24); ctx.fill();
+      ctx.strokeStyle = c; ctx.lineWidth = 4; circle(ctx, 0, -60 + bob, 24); ctx.stroke();
+      text(ctx, it.type === 'sap' ? '⬡' : '∪', 0, -52 + bob, { size: 24, color: c, align: 'center' });
+    }
+  }
+  ctx.restore();
+}
+
+function drawRunner(ctx, x, y, species, stage, t, sliding, water) {
+  ctx.save();
+  // root legs scurrying
+  const run = t * 18;
+  ctx.strokeStyle = '#8A5A38'; ctx.lineWidth = 4; ctx.lineCap = 'round';
+  for (let k = 0; k < 4; k++) {
+    const ph = run + k * Math.PI / 2;
+    const lx = x - 18 + k * 12;
+    ctx.beginPath(); ctx.moveTo(lx, y - 14); ctx.lineTo(lx + Math.sin(ph) * 8, y - Math.max(0, Math.cos(ph)) * 6); ctx.stroke();
+  }
+  // pot body
+  ctx.fillStyle = '#B5653A';
+  ctx.beginPath(); ctx.moveTo(x - 24, y - 46); ctx.lineTo(x + 24, y - 46); ctx.lineTo(x + 18, y - 12); ctx.lineTo(x - 18, y - 12); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#C97A4A'; ctx.fillRect(x - 28, y - 52, 56, 8);
+  // the plant: squashed flat on a slide, sagging when dry
+  ctx.translate(x, y - 50);
+  if (sliding) ctx.scale(1.25, 0.45);
+  if (water < 25) ctx.rotate(Math.sin(t * 2) * 0.05 + 0.18);
+  drawPlant(ctx, 0, 0, 120, species, stage, t);
+  ctx.restore();
+}
+return createForestDash;
+})();
+
+/* ===== js/games/seed-storm.js ===== */
+const createSeedStorm = (() => {
+// seed-storm.js — You are a seed pod rooted in the middle of a clearing, and
+// everything is coming for you from every direction. Move inside the ring to
+// dodge, your pod fires seeds at the nearest threat by itself, and when the
+// pod is ripe you split it open in a 360° burst — explosive dispersal, the way
+// a squirting cucumber or a sandbox tree launches its seeds.
+
+
+
+const ARENA = { x: VW / 2, y: 400, r: 205 };
+const SURVIVE = 90;
+const BURST_KILLS = 14;
+
+const FOES = {
+  aphid:  { name: 'Aphid swarm', hp: 1, speed: 82,  r: 8,  pts: 6,  color: '#A8D46A' },
+  beetle: { name: 'Beetle',      hp: 5, speed: 42,  r: 15, pts: 25, color: '#C97B3A' },
+  wasp:   { name: 'Wasp',        hp: 2, speed: 112, r: 11, pts: 15, color: PALETTE.pollen },
+  slug:   { name: 'Slug',        hp: 3, speed: 30,  r: 13, pts: 18, color: '#B7A58A' },
+  hail:   { name: 'Hailstone',   hp: Infinity, speed: 230, r: 9, pts: 0, color: '#DCEEF7' },  // dodge only
+};
+
+function createSeedStorm({ species = 'sunflower', stage = 3 } = {}) {
+  const g = {
+    species, stage: clamp(stage, 2, 5),
+    p: { x: ARENA.x, y: ARENA.y, r: 16 },
+    hp: 3,
+    inv: 0,
+    foes: [],
+    seeds: [],
+    warn: [],
+    drops: [],
+    fireT: 0,
+    rate: 0.3,
+    spawnT: 1.2,
+    hailT: 9,
+    kills: 0,
+    burstCharge: 0,
+    bursts: 0,
+    score: 0,
+    time: 0,
+    fx: new Particles(),
+    floats: new Floaters(),
+    shake: 0,
+    over: false,
+    won: false,
+    reason: '',
+    banner: '', bannerT: 0, bannerColor: PALETTE.pollen,
+    dragFrom: null,
+  };
+
+  const say = (msg, color = PALETTE.pollen) => { g.banner = msg; g.bannerT = 1.5; g.bannerColor = color; };
+  const edgePoint = (a, r = ARENA.r + 24) => ({ x: ARENA.x + Math.cos(a) * r, y: ARENA.y + Math.sin(a) * r });
+  const intensity = () => 1 + g.time / 30;          // 1 -> 4 over the round
+
+  function spawnWave() {
+    const roll = Math.random();
+    const a = rand(0, Math.PI * 2);
+    if (roll < 0.4) {
+      for (let k = 0; k < 4 + Math.floor(intensity()); k++) addFoe('aphid', a + rand(-0.25, 0.25), rand(0, 30));
+    } else if (roll < 0.62) addFoe('wasp', a);
+    else if (roll < 0.82) addFoe('slug', a);
+    else addFoe('beetle', a);
+    // later waves arrive from two sides at once
+    if (g.time > 35 && Math.random() < 0.5) addFoe(pick(['wasp', 'slug', 'beetle']), a + Math.PI + rand(-0.6, 0.6));
+  }
+
+  function addFoe(type, a, extra = 0) {
+    const f = FOES[type];
+    const pt = edgePoint(a, ARENA.r + 24 + extra);
+    g.foes.push({ type, x: pt.x, y: pt.y, hp: f.hp, max: f.hp, wob: rand(0, 6), vx: 0, vy: 0 });
+  }
+
+  function hail() {
+    // telegraphed: a red marker at the rim, then a fast straight line across
+    const a = Math.atan2(g.p.y - ARENA.y, g.p.x - ARENA.x) + rand(-0.5, 0.5) + Math.PI;
+    g.warn.push({ a, t: 0.9 });
+  }
+
+  function hurt(by) {
+    if (g.inv > 0) return;
+    g.hp -= 1;
+    g.inv = 1.3;
+    g.shake = 0.3;
+    g.fx.burst(g.p.x, g.p.y, PALETTE.danger, 16, 200);
+    say(`${FOES[by].name} hit you`, PALETTE.danger);
+    if (g.hp <= 0) { g.over = true; g.reason = `Overrun by a ${FOES[by].name.toLowerCase()} at ${Math.floor(g.time)} s.`; }
+  }
+
+  function kill(f, i) {
+    const def = FOES[f.type];
+    g.kills += 1;
+    g.score += def.pts;
+    g.burstCharge = Math.min(BURST_KILLS, g.burstCharge + 1);
+    g.fx.burst(f.x, f.y, def.color, 10, 140, 0.45);
+    g.floats.add(f.x, f.y - 10, `+${def.pts}`, PALETTE.chloro, 14);
+    if (Math.random() < 0.08) g.drops.push({ x: f.x, y: f.y, t: 8 });
+    g.foes.splice(i, 1);
+    if (g.burstCharge === BURST_KILLS) say('Pod is ripe! SPACE / tap the pod to burst', PALETTE.petal);
+  }
+
+  function burst() {
+    if (g.burstCharge < BURST_KILLS) return;
+    g.burstCharge = 0;
+    g.bursts += 1;
+    for (let k = 0; k < 24; k++) {
+      const a = (k / 24) * Math.PI * 2;
+      g.seeds.push({ x: g.p.x, y: g.p.y, vx: Math.cos(a) * 520, vy: Math.sin(a) * 520, life: 0.6, dmg: 3 });
+    }
+    // the shock of the pod splitting shoves everything back
+    for (const f of g.foes) {
+      if (f.type === 'hail') continue;
+      const dx = f.x - g.p.x, dy = f.y - g.p.y, d = Math.hypot(dx, dy) || 1;
+      if (d < 160) { f.vx += (dx / d) * 380; f.vy += (dy / d) * 380; }
+    }
+    g.shake = 0.25;
+    g.fx.burst(g.p.x, g.p.y, PALETTE.petal, 30, 320, 0.7);
+    say('Explosive dispersal!', PALETTE.petal);
+  }
+
+  g.input = (input) => {
+    let mx = 0, my = 0;
+    if (input.key('arrowleft', 'a')) mx -= 1;
+    if (input.key('arrowright', 'd')) mx += 1;
+    if (input.key('arrowup', 'w')) my -= 1;
+    if (input.key('arrowdown', 's')) my += 1;
+    if (input.hit(' ', 'e')) burst();
+
+    const pt = input.pointer;
+    if (pt.justDown) {
+      // tapping your own pod splits it; anywhere else starts a drag
+      if (Math.hypot(pt.x - g.p.x, pt.y - g.p.y) < 34 && g.burstCharge >= BURST_KILLS) burst();
+      else g.dragFrom = { x: pt.x, y: pt.y, px: g.p.x, py: g.p.y };
+    }
+    if (!pt.down) g.dragFrom = null;
+    g.move = { mx, my, drag: g.dragFrom && pt.down ? { tx: g.dragFrom.px + (pt.x - g.dragFrom.x) * 1.2, ty: g.dragFrom.py + (pt.y - g.dragFrom.y) * 1.2 } : null };
+  };
+
+  g.update = (dt) => {
+    if (g.over) return;
+    g.time += dt;
+    g.inv = Math.max(0, g.inv - dt);
+    g.shake = Math.max(0, g.shake - dt);
+    g.bannerT = Math.max(0, g.bannerT - dt);
+
+    // movement inside the ring
+    const sp = 175;
+    const m = g.move || { mx: 0, my: 0 };
+    if (m.drag) {
+      g.p.x += clamp(m.drag.tx - g.p.x, -sp * dt * 1.4, sp * dt * 1.4);
+      g.p.y += clamp(m.drag.ty - g.p.y, -sp * dt * 1.4, sp * dt * 1.4);
+    } else if (m.mx || m.my) {
+      const l = Math.hypot(m.mx, m.my);
+      g.p.x += (m.mx / l) * sp * dt;
+      g.p.y += (m.my / l) * sp * dt;
+    }
+    const dx = g.p.x - ARENA.x, dy = g.p.y - ARENA.y, dd = Math.hypot(dx, dy);
+    const lim = ARENA.r - g.p.r;
+    if (dd > lim) { g.p.x = ARENA.x + (dx / dd) * lim; g.p.y = ARENA.y + (dy / dd) * lim; }
+
+    // spawning ramps up through the round
+    g.spawnT -= dt;
+    if (g.spawnT <= 0) { spawnWave(); g.spawnT = Math.max(0.45, 1.6 / intensity()); }
+    g.hailT -= dt;
+    if (g.hailT <= 0) { hail(); g.hailT = Math.max(2.2, 6 - g.time / 20); }
+    for (let i = g.warn.length - 1; i >= 0; i--) {
+      const w = g.warn[i];
+      w.t -= dt;
+      if (w.t <= 0) {
+        const s = edgePoint(w.a);
+        const tx = ARENA.x - Math.cos(w.a) * ARENA.r, ty = ARENA.y - Math.sin(w.a) * ARENA.r;
+        const l = Math.hypot(tx - s.x, ty - s.y);
+        g.foes.push({ type: 'hail', x: s.x, y: s.y, hp: Infinity, vx: ((tx - s.x) / l) * FOES.hail.speed, vy: ((ty - s.y) / l) * FOES.hail.speed, straight: true });
+        g.warn.splice(i, 1);
+      }
+    }
+
+    // auto-fire at the nearest shootable threat
+    g.fireT -= dt;
+    if (g.fireT <= 0) {
+      let best = null, bd = 300;
+      for (const f of g.foes) {
+        if (f.type === 'hail') continue;
+        const d = Math.hypot(f.x - g.p.x, f.y - g.p.y);
+        if (d < bd) { bd = d; best = f; }
+      }
+      if (best) {
+        const a = Math.atan2(best.y - g.p.y, best.x - g.p.x);
+        g.seeds.push({ x: g.p.x, y: g.p.y, vx: Math.cos(a) * 430, vy: Math.sin(a) * 430, life: 0.8, dmg: 1 });
+        g.fireT = Math.max(0.14, g.rate - g.time / 600);
+      } else g.fireT = 0.05;
+    }
+
+    for (let i = g.seeds.length - 1; i >= 0; i--) {
+      const s = g.seeds[i];
+      s.x += s.vx * dt; s.y += s.vy * dt; s.life -= dt;
+      let gone = s.life <= 0;
+      for (let j = g.foes.length - 1; j >= 0 && !gone; j--) {
+        const f = g.foes[j];
+        if (f.type === 'hail') continue;
+        if (Math.hypot(f.x - s.x, f.y - s.y) < FOES[f.type].r + 4) {
+          f.hp -= s.dmg;
+          gone = true;
+          if (f.hp <= 0) kill(f, j);
+          else g.fx.burst(s.x, s.y, '#EAF2E2', 3, 60, 0.2);
+        }
+      }
+      if (gone) g.seeds.splice(i, 1);
+    }
+
+    for (let i = g.foes.length - 1; i >= 0; i--) {
+      const f = g.foes[i];
+      const def = FOES[f.type];
+      if (f.straight) {
+        f.x += f.vx * dt; f.y += f.vy * dt;
+        if (Math.hypot(f.x - ARENA.x, f.y - ARENA.y) > ARENA.r + 60) { g.foes.splice(i, 1); continue; }
+      } else {
+        const ax = g.p.x - f.x, ay = g.p.y - f.y, l = Math.hypot(ax, ay) || 1;
+        let vx = (ax / l) * def.speed, vy = (ay / l) * def.speed;
+        if (f.type === 'wasp') { f.wob += dt * 7; vx += (-ay / l) * Math.sin(f.wob) * 120; vy += (ax / l) * Math.sin(f.wob) * 120; }
+        f.x += (vx + f.vx) * dt; f.y += (vy + f.vy) * dt;
+        f.vx *= 0.9; f.vy *= 0.9;
+      }
+      if (Math.hypot(f.x - g.p.x, f.y - g.p.y) < def.r + g.p.r - 3) {
+        hurt(f.type);
+        if (f.type !== 'hail') { g.fx.burst(f.x, f.y, def.color, 8, 120, 0.4); g.foes.splice(i, 1); }
+        if (g.over) return;
+      }
+    }
+
+    for (let i = g.drops.length - 1; i >= 0; i--) {
+      const d = g.drops[i];
+      d.t -= dt;
+      if (Math.hypot(d.x - g.p.x, d.y - g.p.y) < 26) {
+        if (g.hp < 3) { g.hp += 1; say('Water drop: +1 health', PALETTE.rain); } else { g.score += 20; }
+        g.drops.splice(i, 1);
+      } else if (d.t <= 0) g.drops.splice(i, 1);
+    }
+
+    g.score += dt * 4;
+    if (g.time >= SURVIVE) {
+      g.won = true; g.over = true;
+      g.score += 400;
+      g.reason = `You held the clearing for the full ${SURVIVE} seconds.`;
+    }
+    g.fx.update(dt, 0);
+    g.floats.update(dt);
+  };
+
+  g.draw = (ctx) => {
+    ctx.save();
+    if (g.shake > 0) ctx.translate((Math.random() - 0.5) * 7, (Math.random() - 0.5) * 7);
+    ctx.fillStyle = '#1B3026';
+    ctx.fillRect(0, 0, VW, VH);
+    // undergrowth outside the ring
+    for (let k = 0; k < 60; k++) {
+      const a = k * 2.4, r = ARENA.r + 30 + (k * 37) % 180;
+      ctx.fillStyle = k % 3 ? 'rgba(95,181,68,0.22)' : 'rgba(61,102,80,0.5)';
+      circle(ctx, ARENA.x + Math.cos(a) * r, ARENA.y + Math.sin(a) * r, 14 + (k % 5) * 4); ctx.fill();
+    }
+    // the clearing
+    const soil = ctx.createRadialGradient(ARENA.x, ARENA.y, 20, ARENA.x, ARENA.y, ARENA.r);
+    soil.addColorStop(0, '#5A4128'); soil.addColorStop(1, '#3A2A1B');
+    ctx.fillStyle = soil; circle(ctx, ARENA.x, ARENA.y, ARENA.r); ctx.fill();
+    ctx.strokeStyle = 'rgba(139,224,106,0.4)'; ctx.lineWidth = 3; circle(ctx, ARENA.x, ARENA.y, ARENA.r); ctx.stroke();
+
+    // hail warnings
+    for (const w of g.warn) {
+      const s = edgePoint(w.a, ARENA.r);
+      ctx.strokeStyle = `rgba(226,86,74,${0.4 + 0.5 * Math.sin(w.t * 20) ** 2})`; ctx.lineWidth = 3;
+      ctx.setLineDash([8, 8]);
+      ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(ARENA.x - Math.cos(w.a) * ARENA.r, ARENA.y - Math.sin(w.a) * ARENA.r); ctx.stroke();
+      ctx.setLineDash([]);
+      text(ctx, '!', s.x, s.y + 7, { size: 22, color: PALETTE.danger, align: 'center' });
+    }
+
+    for (const d of g.drops) {
+      ctx.fillStyle = PALETTE.rain;
+      ctx.beginPath(); ctx.moveTo(d.x, d.y - 12); ctx.quadraticCurveTo(d.x + 9, d.y + 2, d.x, d.y + 8); ctx.quadraticCurveTo(d.x - 9, d.y + 2, d.x, d.y - 12); ctx.fill();
+    }
+    for (const s of g.seeds) {
+      ctx.fillStyle = s.dmg > 1 ? PALETTE.petal : '#E5DCC2';
+      ctx.beginPath(); ctx.ellipse(s.x, s.y, 5, 3, Math.atan2(s.vy, s.vx), 0, Math.PI * 2); ctx.fill();
+    }
+    for (const f of g.foes) drawFoe(ctx, f, g.time);
+
+    // you: a pod on a sturdy stem, your own plant behind it
+    if (g.inv > 0 && Math.floor(g.time * 14) % 2) ctx.globalAlpha = 0.5;
+    drawPlant(ctx, g.p.x, g.p.y + 10, 96, g.species, g.stage, g.time);
+    const ripe = g.burstCharge >= BURST_KILLS;
+    ctx.fillStyle = ripe ? PALETTE.petal : '#7FB04E';
+    ctx.beginPath(); ctx.ellipse(g.p.x, g.p.y, g.p.r, g.p.r * 0.8, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.25)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(g.p.x - g.p.r + 3, g.p.y); ctx.lineTo(g.p.x + g.p.r - 3, g.p.y); ctx.stroke();
+    if (ripe) { ctx.strokeStyle = `rgba(255,126,168,${0.5 + 0.4 * Math.sin(g.time * 8)})`; ctx.lineWidth = 3; circle(ctx, g.p.x, g.p.y, g.p.r + 8); ctx.stroke(); }
+    ctx.globalAlpha = 1;
+
+    g.fx.draw(ctx);
+    g.floats.draw(ctx);
+    ctx.restore();
+
+    hudBar(ctx, { score: Math.floor(g.score), label: `${Math.max(0, Math.ceil(SURVIVE - g.time))} s left`, right: '♥'.repeat(Math.max(0, g.hp)) });
+    // pod ripeness meter
+    text(ctx, 'Pod', 14, 72, { size: 13, color: PALETTE.petal, font: 'Karla, sans-serif' });
+    rr(ctx, 46, 62, 150, 12, 6); ctx.fillStyle = 'rgba(18,33,26,0.8)'; ctx.fill();
+    rr(ctx, 46, 62, (150 * g.burstCharge) / BURST_KILLS, 12, 6); ctx.fillStyle = PALETTE.petal; ctx.fill();
+    if (g.bannerT > 0) {
+      ctx.globalAlpha = Math.min(1, g.bannerT * 2);
+      text(ctx, g.banner, VW / 2, 150, { size: 19, color: g.bannerColor, align: 'center' });
+      ctx.globalAlpha = 1;
+    }
+    if (g.time < 4) text(ctx, 'WASD / drag to move · seeds fire themselves · dodge the hail', VW / 2, 650, { size: 13, color: 'rgba(234,242,226,0.75)', align: 'center', font: 'Karla, sans-serif', weight: 600 });
+  };
+
+  g.result = () => ({
+    score: Math.floor(g.score),
+    sun: Math.max(1, Math.floor(g.score * SUN_RATE.storm)),
+    won: g.won,
+    reason: g.reason || 'Round over.',
+    stats: [
+      ['Survived', `${Math.floor(g.time)} s`],
+      ['Pests stopped', g.kills],
+      ['Pod bursts', g.bursts],
+    ],
+    lesson: 'Some plants throw their own seeds. Pods dry unevenly, tension builds in the walls, and they split violently. The sandbox tree flings seeds at over 200 km/h, and getting them away from the parent means less competition for light and water.',
+  });
+
+  return g;
+}
+
+function drawFoe(ctx, f, t) {
+  const def = FOES[f.type];
+  ctx.save();
+  ctx.translate(f.x, f.y);
+  ctx.fillStyle = def.color;
+  if (f.type === 'hail') {
+    circle(ctx, 0, 0, def.r); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.7)'; circle(ctx, -3, -3, 3); ctx.fill();
+  } else if (f.type === 'aphid') {
+    ctx.beginPath(); ctx.ellipse(0, 0, def.r, def.r * 0.7, 0, 0, Math.PI * 2); ctx.fill();
+  } else if (f.type === 'wasp') {
+    ctx.beginPath(); ctx.ellipse(0, 0, def.r, def.r * 0.6, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#2B2410'; ctx.fillRect(-2, -def.r * 0.6, 3, def.r * 1.2); ctx.fillRect(4, -def.r * 0.5, 3, def.r);
+    ctx.fillStyle = 'rgba(234,242,226,0.6)';
+    const flap = Math.sin(t * 40) * 3;
+    ctx.beginPath(); ctx.ellipse(0, -def.r * 0.8, 6, 3 + flap * 0.3, 0, 0, Math.PI * 2); ctx.fill();
+  } else if (f.type === 'beetle') {
+    ctx.beginPath(); ctx.ellipse(0, 0, def.r, def.r * 1.1, Math.atan2(f.y, f.x), 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.35)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, -def.r); ctx.lineTo(0, def.r); ctx.stroke();
+  } else {
+    ctx.beginPath(); ctx.ellipse(0, 0, def.r * 1.3, def.r * 0.75, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = def.color; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(def.r, -4); ctx.lineTo(def.r + 6, -12); ctx.moveTo(def.r - 4, -6); ctx.lineTo(def.r, -14); ctx.stroke();
+  }
+  if (Number.isFinite(f.max) && f.max > 1 && f.hp < f.max) {
+    ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(-12, -def.r - 9, 24, 4);
+    ctx.fillStyle = PALETTE.chloro; ctx.fillRect(-12, -def.r - 9, 24 * (f.hp / f.max), 4);
+  }
+  ctx.restore();
+}
+return createSeedStorm;
+})();
 /* ===== js/main.js ===== */
 (() => {
 // main.js — hub, economy loop, run launcher, results and quiz.
@@ -4866,8 +5664,17 @@ const FACTORIES = {
   bee: createBeeRush,
   seeds: createSeedCrush,
   survivors: createPlantSurvivors,
+  dash: createForestDash,
+  storm: createSeedStorm,
 };
-const GLYPH = { vine: '🌿', clouds: '☁', bee: '🐝', seeds: '🌰', survivors: '🛡' };
+const GLYPH = { vine: '🌿', clouds: '☁', bee: '🐝', seeds: '🌰', survivors: '🛡', dash: '🌲', storm: '💥' };
+
+/** The games that star a plant use your most-grown bed. */
+function heroPlant() {
+  const open = S.state.plots.filter((p) => p.unlocked);
+  const best = open.sort((a, b) => b.stage - a.stage)[0] || S.state.plots[0];
+  return { species: best.species, stage: Math.max(2, best.stage) };
+}
 
 const BUILD = 'b5';
 const $ = (id) => document.getElementById(id);
@@ -5285,7 +6092,7 @@ function startRun(id) {
   document.body.classList.add('playing');
   window.scrollTo(0, 0);
 
-  const game = FACTORIES[id]();
+  const game = FACTORIES[id](heroPlant());
   runInput = new Input(gameCanvas);
 
   const wrapped = {

@@ -13,6 +13,8 @@ import { createCloudBarrage } from './games/cloud-barrage.js';
 import { createBeeRush } from './games/bee-rush.js';
 import { createSeedCrush } from './games/seed-crush.js';
 import { createPlantSurvivors } from './games/plant-survivors.js';
+import { createForestDash } from './games/forest-dash.js';
+import { createSeedStorm } from './games/seed-storm.js';
 
 const FACTORIES = {
   vine: createVineGarden,
@@ -20,8 +22,17 @@ const FACTORIES = {
   bee: createBeeRush,
   seeds: createSeedCrush,
   survivors: createPlantSurvivors,
+  dash: createForestDash,
+  storm: createSeedStorm,
 };
-const GLYPH = { vine: '🌿', clouds: '☁', bee: '🐝', seeds: '🌰', survivors: '🛡' };
+const GLYPH = { vine: '🌿', clouds: '☁', bee: '🐝', seeds: '🌰', survivors: '🛡', dash: '🌲', storm: '💥' };
+
+/** The games that star a plant use your most-grown bed. */
+function heroPlant() {
+  const open = S.state.plots.filter((p) => p.unlocked);
+  const best = open.sort((a, b) => b.stage - a.stage)[0] || S.state.plots[0];
+  return { species: best.species, stage: Math.max(2, best.stage) };
+}
 
 const BUILD = 'b5';
 const $ = (id) => document.getElementById(id);
@@ -439,7 +450,7 @@ function startRun(id) {
   document.body.classList.add('playing');
   window.scrollTo(0, 0);
 
-  const game = FACTORIES[id]();
+  const game = FACTORIES[id](heroPlant());
   runInput = new Input(gameCanvas);
 
   const wrapped = {

@@ -45,7 +45,7 @@ const bedrock = new BedrockRuntimeClient({ region: REGION });
 export const TOPICS = [
   'photosynthesis', 'chlorophyll', 'stomata', 'xylem', 'transpiration', 'roots',
   'germination', 'pollination', 'nectar', 'seeddispersal', 'tropism', 'defence',
-  'fungusFact', 'water_need', 'bark', 'bloomcycle',
+  'fungusFact', 'water_need', 'bark', 'bloomcycle', 'sunflecks', 'ballistic',
 ];
 const PLANT_TYPES = ['tree', 'shrub', 'herb', 'flower', 'succulent', 'cactus', 'fern', 'grass', 'vine', 'moss', 'aquatic', 'houseplant', 'fungus', 'other'];
 const RARITY = ['common', 'uncommon', 'rare'];

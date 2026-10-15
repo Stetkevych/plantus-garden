@@ -137,6 +137,8 @@ export const SUN_RATE = {
   bee: 0.041,
   seeds: 0.011,
   survivors: 0.054,
+  dash: 0.0064,
+  storm: 0.033,
 };
 
 export const GAMES = [
@@ -145,6 +147,8 @@ export const GAMES = [
   { id: 'bee',       title: 'Bee Rush',        tag: 'Endless runner', verb: 'Pollinate at speed',      hint: 'Left / right / up to hop' },
   { id: 'seeds',     title: 'Seed Crush',      tag: 'Match 3',        verb: 'Match and germinate',     hint: 'Drag a seed onto its neighbour' },
   { id: 'survivors', title: 'Plant Survivors', tag: 'Survivor-like',  verb: 'Defend the beds',         hint: 'WASD / drag to move' },
+  { id: 'dash',      title: 'Forest Dash',     tag: 'Lane runner',    verb: 'Run your plant through the woods', hint: '← → lanes · ↑ jump · ↓ slide' },
+  { id: 'storm',     title: 'Seed Storm',      tag: 'Arena shooter',  verb: 'Hold the clearing',       hint: 'WASD / drag · SPACE bursts the pod' },
 ];
 
 export const cost = (species, stage) =>

@@ -82,6 +82,16 @@ export const FACTS = {
     body: 'A bud is a packed-up flower. When the plant has enough stored sugar it commits to opening — an expensive, one-shot investment.',
     tag: 'Flower',
   },
+  sunflecks: {
+    title: 'Sunflecks',
+    body: 'On a forest floor, brief patches of direct sun slipping through the canopy can supply over half of an understory plant\'s daily photosynthesis.',
+    tag: 'Leaf',
+  },
+  ballistic: {
+    title: 'Explosive dispersal',
+    body: 'Some pods dry unevenly until tension splits them open and flings the seeds. The sandbox tree launches seeds at over 200 km/h.',
+    tag: 'Seed',
+  },
 };
 
 // Which fact is awarded when a plant reaches each stage.
@@ -94,6 +104,8 @@ export const GAME_FACTS = {
   bee: 'nectar',
   seeds: 'seeddispersal',
   survivors: 'defence',
+  dash: 'sunflecks',
+  storm: 'ballistic',
 };
 
 // Post-game quiz. One question, drawn from the game you just played.
@@ -152,6 +164,28 @@ export const QUIZ = {
     { q: 'Fungal attacks spread fastest when leaves are:',
       a: ['Dry and airy', 'Wet and crowded', 'Cold and bright'], correct: 1,
       why: 'Spores need moisture to germinate on the leaf surface.' },
+  ],
+  dash: [
+    { q: 'Roughly how much of full sunlight reaches a dense forest floor?',
+      a: ['A few percent', 'About half', 'All of it'], correct: 0,
+      why: 'The canopy intercepts almost everything, which is why sunflecks matter so much.' },
+    { q: 'Why does a running plant need to keep collecting water?',
+      a: ['Leaves lose water by transpiration all the time', 'Water makes it faster', 'Roots store none at all'], correct: 0,
+      why: 'Open stomata let CO2 in and water vapour out, constantly.' },
+    { q: 'A sunfleck is:',
+      a: ['A brief patch of direct sun through a canopy gap', 'A yellow leaf', 'A type of pollen'], correct: 0,
+      why: 'Understory plants are tuned to switch photosynthesis on fast when one arrives.' },
+  ],
+  storm: [
+    { q: 'What makes an explosive seed pod burst?',
+      a: ['Tension built up as the pod walls dry unevenly', 'Insects biting it', 'Rain filling it up'], correct: 0,
+      why: 'Uneven drying stores elastic energy until the seam gives way.' },
+    { q: 'Why do plants throw seeds away from themselves?',
+      a: ['Less competition with the parent for light and water', 'Seeds dislike the parent', 'To keep the soil tidy'], correct: 0,
+      why: 'A seedling under its parent is shaded and out-rooted.' },
+    { q: 'Aphids harm plants mainly by:',
+      a: ['Sucking sugary sap out of the phloem', 'Chewing the roots', 'Blocking sunlight'], correct: 0,
+      why: 'They tap straight into the phloem, the plant\'s sugar pipeline.' },
   ],
 };
 

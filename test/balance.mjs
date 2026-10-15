@@ -6,13 +6,15 @@ import { createCloudBarrage } from '../js/games/cloud-barrage.js';
 import { createBeeRush } from '../js/games/bee-rush.js';
 import { createSeedCrush } from '../js/games/seed-crush.js';
 import { createPlantSurvivors } from '../js/games/plant-survivors.js';
+import { createForestDash, OBSTACLES as DASH_OBS } from '../js/games/forest-dash.js';
+import { createSeedStorm, ARENA, FOES } from '../js/games/seed-storm.js';
 import { SUN_RATE } from '../js/data/config.js';
 
 const noop = () => {};
 const ctx = new Proxy({}, {
   get(t, k) {
     if (k === 'measureText') return () => ({ width: 24 });
-    if (k === 'createLinearGradient') return () => ({ addColorStop: noop });
+    if (k === 'createLinearGradient' || k === 'createRadialGradient') return () => ({ addColorStop: noop });
     if (k in t) return t[k];
     return noop;
   },
@@ -272,15 +274,84 @@ function botSurvivors() {
   return { ...g.result(), time: g.time };
 }
 
+
+/* ---------------- Forest Dash: read the trail a few rows ahead ---------------- */
+function botDash() {
+  const g = createForestDash(), input = mkInput();
+  let frames = 0;
+  while (!g.over && frames < 60 * 300) {
+    input.clear();
+    // a person decides roughly every 120 ms, not every frame
+    if (frames % 7) { g.input(input); g.update(1 / 60); g.draw(ctx); frames++; continue; }
+    const ahead = (lane, near, far) => g.items.filter((i) => i.lane === lane && i.d > near && i.d < far);
+    const laneScore = (lane) => {
+      if (lane < 0 || lane > 2) return -99;
+      let s = 0;
+      for (const i of ahead(lane, 0.6, 12)) {
+        if (i.kind === 'obs') s -= DASH_OBS[i.type].need === 'lane' ? 12 : 3;
+        else s += i.type === 'drop' ? (g.water < 50 ? 3 : 1) : 4;
+      }
+      return s;
+    };
+    const here = laneScore(g.lane), l = laneScore(g.lane - 1), r = laneScore(g.lane + 1);
+    if (l > here + 1 && l >= r) input.tap('arrowleft');
+    else if (r > here + 1) input.tap('arrowright');
+    // time the hop or slide for whatever is about to arrive in this lane
+    const next = ahead(g.lane, 0.6, 20).filter((i) => i.kind === 'obs').sort((a, b) => a.d - b.d)[0];
+    if (next) {
+      const eta = (next.d - 0.6) / g.speed;
+      const need = DASH_OBS[next.type].need;
+      if (need === 'jump' && eta < 0.4 && g.jump <= 0) input.tap('arrowup');
+      if (need === 'slide' && eta < 0.4 && g.slide <= 0) input.tap('arrowdown');
+    }
+    g.input(input); g.update(1 / 60); g.draw(ctx);
+    frames++;
+  }
+  return g.result();
+}
+
+/* ---------------- Seed Storm: keep away from threats, burst when crowded ---------------- */
+function botStorm() {
+  const g = createSeedStorm(), input = mkInput();
+  let frames = 0;
+  while (!g.over && frames < 60 * 120) {
+    input.clear();
+    let vx = (ARENA.x - g.p.x) * 0.004, vy = (ARENA.y - g.p.y) * 0.004;   // drift home
+    let crowd = 0;
+    for (const f of g.foes) {
+      const dx = g.p.x - f.x, dy = g.p.y - f.y, d = Math.hypot(dx, dy) || 1;
+      if (f.type === 'hail') {
+        // step sideways off the hailstone's line
+        const along = (dx * f.vx + dy * f.vy) / Math.hypot(f.vx, f.vy);
+        if (along < 0 && d < 220) { vx += -f.vy / 40 * Math.sign(dx * -f.vy + dy * f.vx || 1); vy += f.vx / 40 * Math.sign(dx * -f.vy + dy * f.vx || 1); }
+        continue;
+      }
+      if (d < 140) { vx += (dx / d) * (140 - d) / 30; vy += (dy / d) * (140 - d) / 30; }
+      if (d < 90) crowd++;
+    }
+    for (const dr of g.drops) if (g.hp < 3) { vx += (dr.x - g.p.x) * 0.01; vy += (dr.y - g.p.y) * 0.01; }
+    if (Math.abs(vx) > 0.25) input.keys.add(vx > 0 ? 'arrowright' : 'arrowleft');
+    if (Math.abs(vy) > 0.25) input.keys.add(vy > 0 ? 'arrowdown' : 'arrowup');
+    if (crowd >= 3) input.tap(' ');
+    g.input(input); g.update(1 / 60); g.draw(ctx);
+    frames++;
+  }
+  return { ...g.result(), time: g.time };
+}
+
 const RUNS = 30;
 const rows = [];
+const ONLY = (process.env.ONLY || '').split(',').filter(Boolean);
 for (const [name, bot, id] of [
   ['Vine Garden', botVine, 'vine'],
   ['Cloud Barrage', botClouds, 'clouds'],
   ['Bee Rush', botBee, 'bee'],
   ['Seed Crush', botSeeds, 'seeds'],
   ['Plant Survivors', botSurvivors, 'survivors'],
+  ['Forest Dash', botDash, 'dash'],
+  ['Seed Storm', botStorm, 'storm'],
 ]) {
+  if (ONLY.length && !ONLY.includes(id)) continue;
   const scores = [], suns = [];
   let wins = 0;
   for (let i = 0; i < RUNS; i++) {

@@ -62,6 +62,8 @@ const GAMES = [
   ['js/games/bee-rush.js', 'createBeeRush'],
   ['js/games/seed-crush.js', 'createSeedCrush'],
   ['js/games/plant-survivors.js', 'createPlantSurvivors'],
+  ['js/games/forest-dash.js', 'createForestDash'],
+  ['js/games/seed-storm.js', 'createSeedStorm'],
 ].map(([p, fn]) => `/* ===== ${p} ===== */
 const ${fn} = (() => {
 ${strip(read(p))}
