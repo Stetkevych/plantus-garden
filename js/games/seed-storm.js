@@ -4,7 +4,7 @@
 // pod is ripe you split it open in a 360° burst — explosive dispersal, the way
 // a squirting cucumber or a sandbox tree launches its seeds.
 
-import { VW, VH, circle, rr, text, hudBar, Particles, Floaters, clamp, rand, pick } from '../core/engine.js';
+import { VW, VH, circle, rr, text, hudBar, Particles, Floaters, clamp, rand, pick, ramp } from '../core/engine.js';
 import { PALETTE, SUN_RATE } from '../data/config.js';
 import { drawPlant } from '../core/plantart.js';
 
@@ -51,7 +51,7 @@ export function createSeedStorm({ species = 'sunflower', stage = 3 } = {}) {
 
   const say = (msg, color = PALETTE.pollen) => { g.banner = msg; g.bannerT = 1.5; g.bannerColor = color; };
   const edgePoint = (a, r = ARENA.r + 24) => ({ x: ARENA.x + Math.cos(a) * r, y: ARENA.y + Math.sin(a) * r });
-  const intensity = () => 1 + g.time / 30;          // 1 -> 4 over the round
+  const intensity = () => ramp(g.time, 1, 4, 50);   // 1 -> ~3.5 over the round
 
   function spawnWave() {
     const roll = Math.random();
@@ -160,9 +160,9 @@ export function createSeedStorm({ species = 'sunflower', stage = 3 } = {}) {
 
     // spawning ramps up through the round
     g.spawnT -= dt;
-    if (g.spawnT <= 0) { spawnWave(); g.spawnT = Math.max(0.45, 1.6 / intensity()); }
+    if (g.spawnT <= 0) { spawnWave(); g.spawnT = ramp(g.time, 1.6, 0.45, 50); }
     g.hailT -= dt;
-    if (g.hailT <= 0) { hail(); g.hailT = Math.max(2.2, 6 - g.time / 20); }
+    if (g.hailT <= 0) { hail(); g.hailT = ramp(g.time, 6, 2.2, 50); }
     for (let i = g.warn.length - 1; i >= 0; i--) {
       const w = g.warn[i];
       w.t -= dt;
@@ -240,7 +240,7 @@ export function createSeedStorm({ species = 'sunflower', stage = 3 } = {}) {
     g.score += dt * 4;
     if (g.time >= SURVIVE) {
       g.won = true; g.over = true;
-      g.score += 400;
+      g.score += 150;
       g.reason = `You held the clearing for the full ${SURVIVE} seconds.`;
     }
     g.fx.update(dt, 0);

@@ -2,7 +2,7 @@
 // blooms instantly behind you. Consecutive hits build a pollination combo; the Bee Swarm
 // booster splits you into 3 then 5 bees so you cover lanes you are not flying in.
 
-import { VW, VH, rr, circle, text, hudBar, Particles, Floaters, clamp, rand, pick } from '../core/engine.js';
+import { VW, VH, rr, circle, text, hudBar, Particles, Floaters, clamp, rand, pick, ramp } from '../core/engine.js';
 import { PALETTE, SUN_RATE } from '../data/config.js';
 
 const LANES = [96, 240, 384];
@@ -162,7 +162,7 @@ export function createBeeRush() {
     g.floats.update(dt);
 
     const boost = g.speedT > 0 ? 1.45 : 1;
-    g.speed = Math.min(760, 300 + g.dist * 0.030) * boost;
+    g.speed = ramp(g.t, 300, 700, 80) * boost;
     g.dist += g.speed * dt;
     g.scroll = (g.scroll + g.speed * dt) % 80;
     g.score += g.speed * dt * 0.012;
@@ -170,7 +170,7 @@ export function createBeeRush() {
     g.x += (LANES[g.lane] - g.x) * Math.min(1, dt * 16);
 
     g.spawnT -= dt;
-    if (g.spawnT <= 0) { spawn(); g.spawnT = clamp(0.95 - g.dist * 0.000035, 0.42, 1.0); }
+    if (g.spawnT <= 0) { spawn(); g.spawnT = ramp(g.t, 0.95, 0.45, 80); }
 
     // lanes the swarm covers
     const covered = g.swarm >= 5 ? [0, 1, 2] : g.swarm >= 3 ? [g.lane - 1, g.lane, g.lane + 1].filter((l) => l >= 0 && l < 3) : [g.lane];

@@ -149,15 +149,34 @@ Current medians for a competent run:
 
 | Game | Median score | Median sun | Objective met |
 |---|---|---|---|
-| Vine Garden | 450 | 69 | endless |
-| Cloud Barrage | 2740 | 80 | 97% |
-| Bee Rush | 2414 | 98 | endless |
-| Seed Crush | 5570 | 61 | 83% |
-| Plant Survivors | 1052 | 56 | 10% |
-| Forest Dash | ~10000 | ~65 | endless |
-| Seed Storm | ~2000 | ~65 | ~20% |
+| Vine Garden | ~450 | ~65 | endless |
+| Cloud Barrage | ~2750 | ~72 | ~90% |
+| Bee Rush | ~2000 | ~68 | endless |
+| Seed Crush | ~5800 | ~67 | ~88% |
+| Plant Survivors | ~920 | ~60 | rare |
+| Forest Dash | ~18000 | ~71 | endless |
+| Seed Storm | ~3400 | ~74 | ~50% |
 
 Payout rates in `js/data/config.js` are tuned so no game is a shortcut.
+
+### Pacing
+
+Every real-time game drives its difficulty from **elapsed time** through one shared
+curve, `ramp(t, from, to, tau)` in `js/core/engine.js`. It starts exactly at a calm
+opening pace and eases steadily toward a cap: about 63% of the way there after `tau`
+seconds and 95% after `3·tau`, with no steps or jumps. Bee Rush and Forest Dash used to
+scale with distance, which feeds back on itself (faster means more distance, which
+means faster still) and made late runs lurch.
+
+| Game | What ramps | Start → cap | tau |
+|---|---|---|---|
+| Vine Garden | step time (also tightens with length) | 0.165 s → 0.125 s | 90 s |
+| Bee Rush | speed, spawn gap | 300 → 700 px/s, 0.95 → 0.45 s | 80 s |
+| Forest Dash | speed, row gap, double-blocked rows, full-width walls | 16 → 50, 1.15 → 0.5 s, 30 → 75%, 0 → 35% | 75 s |
+| Plant Survivors | spawn gap (and pest strength by wave) | 2.1 → 0.55 s | 75 s |
+| Seed Storm | spawn gap, hail gap, swarm size | 1.6 → 0.45 s, 6 → 2.2 s | 50 s |
+| Cloud Barrage | turn-based: sky drops every 5, then 4, then 3 shots | — | — |
+| Seed Crush | turn-based puzzle with a move limit, no clock | — | — |
 
 ---
 

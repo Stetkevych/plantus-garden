@@ -132,13 +132,13 @@ export const POWERUPS = {
 // Tuned against the bot harness in test/balance.mjs so a competent run pays roughly
 // 65 sun in every game. No mini-game should be the shortcut.
 export const SUN_RATE = {
-  vine: 0.155,
-  clouds: 0.023,
-  bee: 0.041,
-  seeds: 0.011,
-  survivors: 0.054,
-  dash: 0.0064,
-  storm: 0.033,
+  vine: 0.15,
+  clouds: 0.019,
+  bee: 0.0345,
+  seeds: 0.0116,
+  survivors: 0.0655,
+  dash: 0.0039,
+  storm: 0.022,
 };
 
 export const GAMES = [

@@ -1,7 +1,7 @@
 // vine-garden.js — Snake, re-read as a vine. You never stop growing; you route around damage.
 // Plant connection: every node you take becomes a leaf, then a bud, then a bloom on your own vine.
 
-import { VW, VH, rr, circle, text, hudBar, Particles, Floaters, randInt, pick } from '../core/engine.js';
+import { VW, VH, rr, circle, text, hudBar, Particles, Floaters, randInt, pick, ramp } from '../core/engine.js';
 import { PALETTE, SUN_RATE, HAZARDS, POWERUPS } from '../data/config.js';
 
 const CELL = 30;
@@ -155,7 +155,6 @@ export function createVineGarden() {
       g.fx.burst(head.x * CELL + CELL / 2, TOP + head.y * CELL + CELL / 2, node.kind === 'flower' ? PALETTE.petal : PALETTE.chloro, 12, 130);
       spawnNode();
       if (Math.random() < 0.35) spawnNode();
-      g.speed = Math.max(0.075, 0.165 - g.leaves * 0.0022);
     } else {
       g.body.pop();
     }
@@ -236,6 +235,8 @@ export function createVineGarden() {
       }
     }
 
+    // seconds per step: a steady start that tightens with time and with length
+    g.speed = Math.max(0.075, ramp(g.t, 0.165, 0.125, 90) - g.leaves * 0.0018);
     g.tick += dt;
     while (g.tick >= g.speed && !g.over) { g.tick -= g.speed; step(); }
   };

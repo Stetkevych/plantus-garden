@@ -4,7 +4,7 @@
 // a bonus, they are fuel — and sunflecks are the big prize, as they are for
 // every real plant on a shaded forest floor.
 
-import { VW, VH, rr, circle, text, hudBar, Particles, Floaters, clamp, pick } from '../core/engine.js';
+import { VW, VH, rr, circle, text, hudBar, Particles, Floaters, clamp, pick, ramp } from '../core/engine.js';
 import { PALETTE, SUN_RATE } from '../data/config.js';
 import { drawPlant } from '../core/plantart.js';
 
@@ -77,14 +77,14 @@ export function createForestDash({ species = 'sunflower', stage = 3 } = {}) {
     const lanes = [0, 1, 2].sort(() => Math.random() - 0.5);
     // Deep in the woods, some rows wall off every lane: one of them is always a
     // log or a branch, so there is still a way through if you read it in time.
-    if (g.dist > 900 && Math.random() < Math.min(0.35, (g.dist - 900) / 5000)) {
+    if (Math.random() < ramp(g.t - 40, 0, 0.35, 90)) {
       const way = pick(['log', 'branch', 'thorns']);
       g.items.push({ kind: 'obs', type: way, lane: lanes[0], d: FAR });
       g.items.push({ kind: 'obs', type: pick(['stump', way === 'branch' ? 'log' : 'branch']), lane: lanes[1], d: FAR });
       g.items.push({ kind: 'obs', type: 'stump', lane: lanes[2], d: FAR });
       return;
     }
-    const hard = Math.min(0.75, 0.35 + g.dist / 4000);
+    const hard = ramp(g.t, 0.3, 0.75, 70);
     const nObs = Math.random() < hard ? 2 : 1;
     for (let i = 0; i < nObs; i++) {
       const type = pick(i === 0 ? ['log', 'branch', 'stump', 'thorns'] : ['log', 'branch', 'thorns', 'stump']);
@@ -152,7 +152,7 @@ export function createForestDash({ species = 'sunflower', stage = 3 } = {}) {
   g.update = (dt) => {
     if (g.over) return;
     g.t += dt;
-    g.speed = Math.min(54, 16 + g.dist / 90);
+    g.speed = ramp(g.t, 16, 50, 75);
     const step = g.speed * dt;
     g.dist += step;
     g.score += step * 0.5 * mult();
@@ -169,7 +169,7 @@ export function createForestDash({ species = 'sunflower', stage = 3 } = {}) {
     if (g.water <= 0) { g.water = 0; g.over = true; g.reason = `Dried out after ${Math.floor(g.dist)} m. Water drops are fuel, not a bonus.`; }
 
     g.rowT -= dt * (g.speed / 16);
-    if (g.rowT <= 0) { spawnRow(); g.rowT = Math.max(0.42, 1.15 - g.dist / 2500); }
+    if (g.rowT <= 0) { spawnRow(); g.rowT = ramp(g.t, 1.15, 0.5, 75); }
 
     for (const tr of g.trees) { tr.d -= step; if (tr.d < -2) Object.assign(tr, tree(FAR)); }
 

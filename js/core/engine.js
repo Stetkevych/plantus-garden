@@ -166,6 +166,14 @@ export function hudBar(ctx, { score, label, right }) {
 }
 
 export const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+/**
+ * The pacing curve every real-time game uses. Starts exactly at `from`, eases
+ * toward `to`, and never jumps: ~63% of the way there after `tau` seconds,
+ * ~95% after 3*tau. Driving difficulty from time rather than distance keeps
+ * the climb steady, because distance-based speed feeds back on itself.
+ */
+export const ramp = (t, from, to, tau) => to + (from - to) * Math.exp(-Math.max(0, t) / tau);
 export const lerp = (a, b, t) => a + (b - a) * t;
 export const rand = (a, b) => a + Math.random() * (b - a);
 export const randInt = (a, b) => Math.floor(rand(a, b + 1));

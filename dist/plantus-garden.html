@@ -849,13 +849,13 @@ const POWERUPS = {
 // Tuned against the bot harness in test/balance.mjs so a competent run pays roughly
 // 65 sun in every game. No mini-game should be the shortcut.
 const SUN_RATE = {
-  vine: 0.155,
-  clouds: 0.023,
-  bee: 0.041,
-  seeds: 0.011,
-  survivors: 0.054,
-  dash: 0.0064,
-  storm: 0.033,
+  vine: 0.15,
+  clouds: 0.019,
+  bee: 0.0345,
+  seeds: 0.0116,
+  survivors: 0.0655,
+  dash: 0.0039,
+  storm: 0.022,
 };
 
 const GAMES = [
@@ -1277,6 +1277,14 @@ function hudBar(ctx, { score, label, right }) {
 }
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+/**
+ * The pacing curve every real-time game uses. Starts exactly at `from`, eases
+ * toward `to`, and never jumps: ~63% of the way there after `tau` seconds,
+ * ~95% after 3*tau. Driving difficulty from time rather than distance keeps
+ * the climb steady, because distance-based speed feeds back on itself.
+ */
+const ramp = (t, from, to, tau) => to + (from - to) * Math.exp(-Math.max(0, t) / tau);
 const lerp = (a, b, t) => a + (b - a) * t;
 const rand = (a, b) => a + Math.random() * (b - a);
 const randInt = (a, b) => Math.floor(rand(a, b + 1));
@@ -2584,6 +2592,8 @@ const { initField, showScan, showHerbarium } = FIELD;
 const createVineGarden = (() => {
 // vine-garden.js — Snake, re-read as a vine. You never stop growing; you route around damage.
 // Plant connection: every node you take becomes a leaf, then a bud, then a bloom on your own vine.
+
+
 const CELL = 30;
 const COLS = 16;
 const TOP = 60;
@@ -2735,7 +2745,6 @@ function createVineGarden() {
       g.fx.burst(head.x * CELL + CELL / 2, TOP + head.y * CELL + CELL / 2, node.kind === 'flower' ? PALETTE.petal : PALETTE.chloro, 12, 130);
       spawnNode();
       if (Math.random() < 0.35) spawnNode();
-      g.speed = Math.max(0.075, 0.165 - g.leaves * 0.0022);
     } else {
       g.body.pop();
     }
@@ -2816,6 +2825,8 @@ function createVineGarden() {
       }
     }
 
+    // seconds per step: a steady start that tightens with time and with length
+    g.speed = Math.max(0.075, ramp(g.t, 0.165, 0.125, 90) - g.leaves * 0.0018);
     g.tick += dt;
     while (g.tick >= g.speed && !g.over) { g.tick -= g.speed; step(); }
   };
@@ -3015,6 +3026,9 @@ const createCloudBarrage = (() => {
 // Every burst becomes rain that falls on the garden below, and each plant needs a
 // different amount of water. Cactus 2. Sunflower 5. Fern 6. Rose 8. Oak 15.
 // You win by growing all five, not by emptying the sky.
+
+
+
 const R = 21;             // cloud radius
 const CW = 50;            // column pitch
 const RH = 43;            // row pitch
@@ -3256,7 +3270,9 @@ function createCloudBarrage() {
     g.grid.forEach((row) => row.forEach((cl) => { if (cl && cl.frozen > 0) cl.frozen -= 1; }));
 
     g.sinceDrop += 1;
-    if (g.sinceDrop >= 5) { g.sinceDrop = 0; descend(); }
+    // every 5 shots at first, then 4, then 3 as the droplets run low
+    const fired = SHOTS - g.shots;
+    if (g.sinceDrop >= (fired < 10 ? 5 : fired < 19 ? 4 : 3)) { g.sinceDrop = 0; descend(); }
 
     for (let r2 = 0; r2 < g.grid.length; r2++) {
       for (let c2 = 0; c2 < colsIn(r2); c2++) {
@@ -3555,6 +3571,8 @@ const createBeeRush = (() => {
 // bee-rush.js — Endless runner. You are a bee. Touching a flower pollinates it and it
 // blooms instantly behind you. Consecutive hits build a pollination combo; the Bee Swarm
 // booster splits you into 3 then 5 bees so you cover lanes you are not flying in.
+
+
 const LANES = [96, 240, 384];
 const BEE_Y = 560;
 const GROUND = 620;
@@ -3712,7 +3730,7 @@ function createBeeRush() {
     g.floats.update(dt);
 
     const boost = g.speedT > 0 ? 1.45 : 1;
-    g.speed = Math.min(760, 300 + g.dist * 0.030) * boost;
+    g.speed = ramp(g.t, 300, 700, 80) * boost;
     g.dist += g.speed * dt;
     g.scroll = (g.scroll + g.speed * dt) % 80;
     g.score += g.speed * dt * 0.012;
@@ -3720,7 +3738,7 @@ function createBeeRush() {
     g.x += (LANES[g.lane] - g.x) * Math.min(1, dt * 16);
 
     g.spawnT -= dt;
-    if (g.spawnT <= 0) { spawn(); g.spawnT = clamp(0.95 - g.dist * 0.000035, 0.42, 1.0); }
+    if (g.spawnT <= 0) { spawn(); g.spawnT = ramp(g.t, 0.95, 0.45, 80); }
 
     // lanes the swarm covers
     const covered = g.swarm >= 5 ? [0, 1, 2] : g.swarm >= 3 ? [g.lane - 1, g.lane, g.lane + 1].filter((l) => l >= 0 && l < 3) : [g.lane];
@@ -3977,6 +3995,8 @@ const createSeedCrush = (() => {
 // only counts as germinated once the tray has water, warmth and oxygen — the three real
 // requirements. Match 4 makes a sprout that clears a line; match 5 makes a taproot that
 // clears every seed of one kind.
+
+
 const COLS = 8, ROWS = 8, CELL = 56;
 const OX = 16, OY = 176;
 const MOVES = 26;
@@ -4393,6 +4413,9 @@ const createPlantSurvivors = (() => {
 // plant-survivors.js — Survivor-like. You do not attack; your thorns fire themselves.
 // Your job is positioning: the pests are not hunting you, they are hunting the three plants.
 // Every upgrade on offer is a real plant defence strategy.
+
+
+
 const TOP = 46;
 const SURVIVE = 120;
 
@@ -4563,7 +4586,7 @@ function createPlantSurvivors() {
     if (g.spawnT <= 0) {
       const n = 1 + Math.floor(g.time / 52);
       for (let i = 0; i < n; i++) spawnPest();
-      g.spawnT = clamp(2.1 - g.time * 0.0080, 0.52, 2.1);
+      g.spawnT = ramp(g.time, 2.1, 0.55, 75);
     }
 
     g.fireT -= dt;
@@ -4903,6 +4926,9 @@ const createForestDash = (() => {
 // around stumps. It is also drying out the whole time, so water drops are not
 // a bonus, they are fuel — and sunflecks are the big prize, as they are for
 // every real plant on a shaded forest floor.
+
+
+
 // Projection: world distance d (0 = the player, FAR = horizon) maps to a scale.
 const HY = 210;                // horizon line
 const PY = 612;                // the player's feet
@@ -4972,14 +4998,14 @@ function createForestDash({ species = 'sunflower', stage = 3 } = {}) {
     const lanes = [0, 1, 2].sort(() => Math.random() - 0.5);
     // Deep in the woods, some rows wall off every lane: one of them is always a
     // log or a branch, so there is still a way through if you read it in time.
-    if (g.dist > 900 && Math.random() < Math.min(0.35, (g.dist - 900) / 5000)) {
+    if (Math.random() < ramp(g.t - 40, 0, 0.35, 90)) {
       const way = pick(['log', 'branch', 'thorns']);
       g.items.push({ kind: 'obs', type: way, lane: lanes[0], d: FAR });
       g.items.push({ kind: 'obs', type: pick(['stump', way === 'branch' ? 'log' : 'branch']), lane: lanes[1], d: FAR });
       g.items.push({ kind: 'obs', type: 'stump', lane: lanes[2], d: FAR });
       return;
     }
-    const hard = Math.min(0.75, 0.35 + g.dist / 4000);
+    const hard = ramp(g.t, 0.3, 0.75, 70);
     const nObs = Math.random() < hard ? 2 : 1;
     for (let i = 0; i < nObs; i++) {
       const type = pick(i === 0 ? ['log', 'branch', 'stump', 'thorns'] : ['log', 'branch', 'thorns', 'stump']);
@@ -5047,7 +5073,7 @@ function createForestDash({ species = 'sunflower', stage = 3 } = {}) {
   g.update = (dt) => {
     if (g.over) return;
     g.t += dt;
-    g.speed = Math.min(54, 16 + g.dist / 90);
+    g.speed = ramp(g.t, 16, 50, 75);
     const step = g.speed * dt;
     g.dist += step;
     g.score += step * 0.5 * mult();
@@ -5064,7 +5090,7 @@ function createForestDash({ species = 'sunflower', stage = 3 } = {}) {
     if (g.water <= 0) { g.water = 0; g.over = true; g.reason = `Dried out after ${Math.floor(g.dist)} m. Water drops are fuel, not a bonus.`; }
 
     g.rowT -= dt * (g.speed / 16);
-    if (g.rowT <= 0) { spawnRow(); g.rowT = Math.max(0.42, 1.15 - g.dist / 2500); }
+    if (g.rowT <= 0) { spawnRow(); g.rowT = ramp(g.t, 1.15, 0.5, 75); }
 
     for (const tr of g.trees) { tr.d -= step; if (tr.d < -2) Object.assign(tr, tree(FAR)); }
 
@@ -5346,7 +5372,7 @@ function createSeedStorm({ species = 'sunflower', stage = 3 } = {}) {
 
   const say = (msg, color = PALETTE.pollen) => { g.banner = msg; g.bannerT = 1.5; g.bannerColor = color; };
   const edgePoint = (a, r = ARENA.r + 24) => ({ x: ARENA.x + Math.cos(a) * r, y: ARENA.y + Math.sin(a) * r });
-  const intensity = () => 1 + g.time / 30;          // 1 -> 4 over the round
+  const intensity = () => ramp(g.time, 1, 4, 50);   // 1 -> ~3.5 over the round
 
   function spawnWave() {
     const roll = Math.random();
@@ -5455,9 +5481,9 @@ function createSeedStorm({ species = 'sunflower', stage = 3 } = {}) {
 
     // spawning ramps up through the round
     g.spawnT -= dt;
-    if (g.spawnT <= 0) { spawnWave(); g.spawnT = Math.max(0.45, 1.6 / intensity()); }
+    if (g.spawnT <= 0) { spawnWave(); g.spawnT = ramp(g.time, 1.6, 0.45, 50); }
     g.hailT -= dt;
-    if (g.hailT <= 0) { hail(); g.hailT = Math.max(2.2, 6 - g.time / 20); }
+    if (g.hailT <= 0) { hail(); g.hailT = ramp(g.time, 6, 2.2, 50); }
     for (let i = g.warn.length - 1; i >= 0; i--) {
       const w = g.warn[i];
       w.t -= dt;
@@ -5535,7 +5561,7 @@ function createSeedStorm({ species = 'sunflower', stage = 3 } = {}) {
     g.score += dt * 4;
     if (g.time >= SURVIVE) {
       g.won = true; g.over = true;
-      g.score += 400;
+      g.score += 150;
       g.reason = `You held the clearing for the full ${SURVIVE} seconds.`;
     }
     g.fx.update(dt, 0);

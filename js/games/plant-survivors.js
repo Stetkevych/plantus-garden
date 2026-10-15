@@ -2,7 +2,7 @@
 // Your job is positioning: the pests are not hunting you, they are hunting the three plants.
 // Every upgrade on offer is a real plant defence strategy.
 
-import { VW, VH, rr, circle, text, hudBar, Particles, Floaters, clamp, rand, pick } from '../core/engine.js';
+import { VW, VH, rr, circle, text, hudBar, Particles, Floaters, clamp, rand, pick, ramp } from '../core/engine.js';
 import { PALETTE, SUN_RATE, HAZARDS } from '../data/config.js';
 import { drawPlant } from '../core/plantart.js';
 
@@ -176,7 +176,7 @@ export function createPlantSurvivors() {
     if (g.spawnT <= 0) {
       const n = 1 + Math.floor(g.time / 52);
       for (let i = 0; i < n; i++) spawnPest();
-      g.spawnT = clamp(2.1 - g.time * 0.0080, 0.52, 2.1);
+      g.spawnT = ramp(g.time, 2.1, 0.55, 75);
     }
 
     g.fireT -= dt;

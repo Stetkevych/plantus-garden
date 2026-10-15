@@ -248,7 +248,9 @@ export function createCloudBarrage() {
     g.grid.forEach((row) => row.forEach((cl) => { if (cl && cl.frozen > 0) cl.frozen -= 1; }));
 
     g.sinceDrop += 1;
-    if (g.sinceDrop >= 5) { g.sinceDrop = 0; descend(); }
+    // every 5 shots at first, then 4, then 3 as the droplets run low
+    const fired = SHOTS - g.shots;
+    if (g.sinceDrop >= (fired < 10 ? 5 : fired < 19 ? 4 : 3)) { g.sinceDrop = 0; descend(); }
 
     for (let r2 = 0; r2 < g.grid.length; r2++) {
       for (let c2 = 0; c2 < colsIn(r2); c2++) {
