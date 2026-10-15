@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#12211A" />
+<title>PlantUs Lab</title>
+<meta name="description" content="Prototype of the PlantUs Unity design: grow a table of rare houseplants, unlock tiers, and battle them." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Karla:wght@400;500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="lab.css?v=1" />
+</head>
+<body>
+
+<header class="bar">
+  <a class="brand" href="../index.html" title="Back to the main PlantUs app">
+    <span class="mark" aria-hidden="true"></span>
+    <span class="name">Plant<em>Us</em> <b>Lab</b></span>
+  </a>
+  <span class="proto">Unity prototype</span>
+  <div class="player">
+    <div class="lvl" title="Player level gates which tiers you can unlock">
+      <span>Lv <b id="lvl">1</b></span>
+      <div class="xpbar"><span id="xpFill"></span></div>
+      <small id="xpText">0 / 80 xp</small>
+    </div>
+    <div class="leaves" title="Leaves — the Unity prototype's Currency. Spend them on unlocks and pots.">🍃 <b id="leaves">60</b></div>
+  </div>
+</header>
+
+<nav class="tabs" aria-label="Lab sections">
+  <button class="tab is-on" data-tab="grow">🪴 Growing table</button>
+  <button class="tab" data-tab="vault">🔐 Seed vault</button>
+  <button class="tab" data-tab="arena">⚔️ Arena</button>
+</nav>
+
+<main>
+  <!-- ============ growing table ============ -->
+  <section id="grow" class="pane">
+    <div class="pane-head">
+      <div>
+        <h1>Your growing table</h1>
+        <p class="lede">Plant anything you've unlocked. Pots dry out every minute, and faster plants dry out quicker. A dry plant stops growing and then starts losing health. Each new stage earns XP, and a plant in bloom can be cut for leaves.</p>
+      </div>
+      <div class="summary" id="growSummary"></div>
+    </div>
+    <div class="table-wrap">
+      <table class="grow-table">
+        <thead>
+          <tr><th></th><th>Plant</th><th>Element</th><th>Stage</th><th>Water</th><th>Health</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody id="growBody"></tbody>
+      </table>
+    </div>
+    <div class="below">
+      <button class="btn btn--ghost" id="buyPot"></button>
+    </div>
+  </section>
+
+  <!-- ============ seed vault ============ -->
+  <section id="vault" class="pane" hidden>
+    <div class="pane-head">
+      <div>
+        <h1>Seed vault</h1>
+        <p class="lede">All 21 plants from the Unity database. Each tier needs a minimum player level and costs leaves, exactly as in <code>PlantUnlockSystem.cs</code>.</p>
+      </div>
+    </div>
+    <div class="chips" id="tierChips"></div>
+    <div class="table-wrap">
+      <table class="vault-table">
+        <thead>
+          <tr><th></th><th>Plant</th><th>Tier</th><th>Element</th><th title="Health">HP</th><th title="Attack">ATK</th><th title="Defense">DEF</th><th title="Speed">SPD</th><th title="Crit chance %">CRIT</th><th>Range</th><th>Traits</th><th></th></tr>
+        </thead>
+        <tbody id="vaultBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ arena ============ -->
+  <section id="arena" class="pane" hidden>
+    <div class="pane-head">
+      <div>
+        <h1>Arena</h1>
+        <p class="lede">Send a Juvenile or older plant from your table against a wild challenger. Every hit runs through the ported <code>PlantCombatLogic.ResolveAttack</code>: dodge, base damage, element advantage, crits and trait bonuses.</p>
+      </div>
+    </div>
+    <div id="arenaBody"></div>
+  </section>
+
+  <details class="tester">
+    <summary>🧪 Tester tools</summary>
+    <div class="tester-row">
+      <button class="btn btn--sm" data-ff="1">⏩ +1 min</button>
+      <button class="btn btn--sm" data-ff="10">⏩ +10 min</button>
+      <button class="btn btn--sm" data-ff="60">⏩ +1 hour (no water)</button>
+      <button class="btn btn--sm btn--ghost" id="giveLeaves">+200 🍃</button>
+      <button class="btn btn--sm btn--ghost" id="giveLevel">+1 level</button>
+      <button class="btn btn--sm btn--danger" id="resetLab">Reset Lab</button>
+    </div>
+    <p class="fine">Lab progress is saved in this browser only, kept apart from your main PlantUs garden.</p>
+  </details>
+</main>
+
+<div class="overlay" id="overlay" hidden><div class="sheet" id="sheet"></div></div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script type="module" src="lab.js?v=1"></script>
+</body>
+</html>
