@@ -1,0 +1,21 @@
+{
+  "name": "plantus-backend",
+  "version": "1.0.0",
+  "description": "PlantUs API and local dev server",
+  "scripts": {
+    "dev": "node dev/server.mjs",
+    "test": "node test/handler.test.mjs",
+    "deploy": "bash ../deploy/deploy.sh"
+  },
+  "license": "ISC",
+  "type": "module",
+  "devDependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.1152.0",
+    "@aws-sdk/client-dynamodb": "^3.1152.0",
+    "@aws-sdk/client-s3": "^3.1152.0",
+    "@aws-sdk/credential-providers": "^3.1152.0",
+    "@aws-sdk/lib-dynamodb": "^3.1152.0",
+    "@aws-sdk/s3-request-presigner": "^3.1152.0"
+  },
+  "private": true
+}

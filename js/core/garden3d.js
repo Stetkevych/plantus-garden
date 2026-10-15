@@ -312,6 +312,7 @@ export function initGarden3D(canvas, { plots, onSelect }) {
 
   const plotGroups = [];
   const rings = [];
+  const patches = [];
   const n = plots.length;
   for (let i = 0; i < n; i++) {
     const angle = (i / n) * Math.PI * 2 - Math.PI / 2;
@@ -340,6 +341,7 @@ export function initGarden3D(canvas, { plots, onSelect }) {
     patch.position.set(p.x, p.y + 0.03, p.z);
     patch.receiveShadow = true;
     scene.add(patch);
+    patches.push(patch);
   }
 
   /* ---------------- interaction ---------------- */
@@ -436,12 +438,21 @@ export function initGarden3D(canvas, { plots, onSelect }) {
         const g = plotGroups[i];
         if (!g) return;
         const stage = plot.unlocked ? plot.stage : -1;
-        if (g.stage === stage && g.species === plot.species) return;
-        if (g.mesh) { g.holder.remove(g.mesh); disposeTree(g.mesh); }
-        g.mesh = plot.unlocked ? buildPlant(plot.species, plot.stage) : null;
-        if (g.mesh) g.holder.add(g.mesh);
-        g.stage = stage;
-        g.species = plot.species;
+        if (g.stage !== stage || g.species !== plot.species) {
+          if (g.mesh) { g.holder.remove(g.mesh); disposeTree(g.mesh); }
+          g.mesh = plot.unlocked ? buildPlant(plot.species, plot.stage) : null;
+          if (g.mesh) g.holder.add(g.mesh);
+          g.stage = stage;
+          g.species = plot.species;
+        }
+
+        // Moisture: a wilting plant leans and sags, waterlogged soil goes dark and wet.
+        const sp = SPECIES[plot.species];
+        const w = plot.water ?? 60;
+        const zone = !plot.unlocked ? 'locked' : w < sp.thirsty ? 'thirsty' : w > sp.soggy ? 'soggy' : 'healthy';
+        g.holder.rotation.z = zone === 'thirsty' ? 0.32 : 0;
+        g.holder.scale.set(1, zone === 'thirsty' ? 0.86 : 1, 1);
+        patches[i].material.color.setHex(zone === 'soggy' ? 0x2B3A48 : zone === 'thirsty' ? 0x8A6A44 : 0x4A3220);
       });
     },
     focus(i) {

@@ -9,20 +9,20 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="Plantus" />
 <link rel="manifest" href="manifest.webmanifest" />
-<title>Plantus Garden — grow it, then play for it</title>
-<meta name="description" content="Five botanical mini-games feed one garden. Win sun tokens, spend them on growth, earn plantus." />
+<title>PlantUs — scan, grow, play</title>
+<meta name="description" content="Photograph a real plant to identify it and add it to your herbarium, care for a living digital garden, and play five botanical games for sun and plantus." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Karla:wght@400;500;700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="css/style.css?v=3" />
+<link rel="stylesheet" href="css/style.css?v=4" />
 </head>
 <body>
 
 <div id="boot" class="boot">
   <div class="boot-inner">
     <span class="boot-mark" aria-hidden="true"></span>
-    <h1>Plantus<em>Garden</em></h1>
-    <p>Five games. One garden.</p>
+    <h1>Plant<em>Us</em></h1>
+    <p>Scan real plants. Grow a garden. Play for it.</p>
     <button class="btn btn--xl" id="bootPlay">Play</button>
     <button class="link-btn" id="bootWindowed">stay windowed</button>
   </div>
@@ -31,7 +31,7 @@
 <header class="topbar">
   <button class="brand" id="homeBtn" aria-label="Back to the garden">
     <span class="brand-mark" aria-hidden="true"></span>
-    <span class="brand-name">Plantus<em>Garden</em></span>
+    <span class="brand-name">Plant<em>Us</em></span>
   </button>
   <div class="wallet">
     <div class="token token--sun" title="Sun tokens — won in mini-games, spent on growth">
@@ -44,8 +44,15 @@
       <span id="plantusCount">0</span>
       <span class="token-label">plantus</span>
     </div>
+    <button class="account-btn" id="accountBtn" aria-label="Account">Sign in</button>
   </div>
 </header>
+
+<nav class="tabs" id="tabs" aria-label="Sections">
+  <button class="tab is-on" data-tab="hub"><span aria-hidden="true">🌱</span>Garden</button>
+  <button class="tab" data-tab="scan"><span aria-hidden="true">📷</span>Scan</button>
+  <button class="tab" data-tab="herbarium"><span aria-hidden="true">📚</span>Herbarium</button>
+</nav>
 
 <!-- ================= GARDEN HUB ================= -->
 <main id="hub" class="view">
@@ -54,6 +61,7 @@
     <div class="bed-head">
       <p class="eyebrow">Your garden</p>
       <h1>Play to earn sun. Spend sun to grow. Growth pays plantus.</h1>
+      <p class="care-line" id="careLine"></p>
     </div>
     <canvas id="gardenCanvas" width="960" height="380" aria-label="Your garden beds"></canvas>
     <canvas id="garden3d" hidden aria-label="Your garden, in 3D"></canvas>
@@ -72,7 +80,13 @@
     <div class="stage-track" id="stageTrack" aria-hidden="true"></div>
     <p class="plot-caption" id="plotCaption"></p>
     <p class="plot-trait" id="plotTrait"></p>
+    <div class="moisture" id="moisture" hidden>
+      <div class="moisture-head"><span>Soil moisture</span><b id="moistureVal">60%</b></div>
+      <div class="moisture-bar"><span class="band" id="moistureBand"></span><span class="fill" id="moistureFill"></span></div>
+      <p class="moisture-note" id="moistureNote"></p>
+    </div>
     <div class="plot-actions">
+      <button class="btn btn--water" id="waterBtn" hidden>Water</button>
       <button class="btn btn--grow" id="growBtn">Grow</button>
       <button class="btn btn--ghost" id="closePlot">Close</button>
     </div>
@@ -96,8 +110,35 @@
 
   <footer class="foot">
     <span id="statLine"></span>
+    <a class="link-btn" href="lab/index.html">🧪 PlantUs Lab (Unity prototype)</a>
     <button class="link-btn" id="resetBtn">Clear save</button>
   </footer>
+</main>
+
+<!-- ================= SCAN ================= -->
+<main id="scan" class="view" hidden>
+  <div class="section-head section-head--top">
+    <p class="eyebrow">Field scan</p>
+    <h1 class="view-title">Point at a plant. Find out what it is.</h1>
+    <p class="view-lede">Every plant you identify goes into your herbarium. New species pay sun and plantus, and unlock field guide entries.</p>
+  </div>
+  <div id="scanBody"></div>
+  <input type="file" id="cameraInput" accept="image/*" capture="environment" hidden />
+  <input type="file" id="libraryInput" accept="image/*" hidden />
+</main>
+
+<!-- ================= HERBARIUM ================= -->
+<main id="herbarium" class="view" hidden>
+  <div class="section-head section-head--top">
+    <p class="eyebrow">Herbarium</p>
+    <h1 class="view-title" id="herbTitle">Every plant you have found</h1>
+    <div class="rank" id="herbRank"></div>
+  </div>
+  <div class="herb-tools" id="herbTools" hidden>
+    <input type="search" id="herbSearch" placeholder="Search your finds" aria-label="Search your finds" />
+    <div class="chips" id="herbChips"></div>
+  </div>
+  <div id="herbBody"></div>
 </main>
 
 <!-- ================= PLAY ================= -->
@@ -117,6 +158,8 @@
   <div class="sheet" id="sheet"></div>
 </div>
 
-<script type="module" src="js/main.js?v=3"></script>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script type="module" src="js/main.js?v=4"></script>
 </body>
 </html>

@@ -1,28 +1,143 @@
-# Plantus Garden
+# PlantUs
 
-Five botanical arcade games feeding one garden. Play a mini-game to win **sun tokens**,
-spend sun in the garden to advance a plant's growth, and healthy growth mints
-**plantus tokens** — the currency that opens new beds.
+A biology learning platform built around plants. Photograph a real plant and get a
+field-guide synopsis of what it is. Every find is pressed into your **herbarium**.
+Keep a living **digital garden** watered, and play five botanical arcade games. All of
+it feeds one points economy: **sun** tokens and **plantus** tokens.
 
-No build step, no dependencies, no framework. Vanilla ES modules and canvas, so the
-whole thing is static files you can drop on S3.
+**Live:** https://d2pxu1hyg5qt5r.cloudfront.net
+
+| Tab | What it does |
+|---|---|
+| 🌱 Garden | Five beds that grow through six stages. Soil moisture drains in real time, at a different rate for each species. Wilted or waterlogged plants will not grow. Keeping every bed healthy pays a daily care streak. |
+| 📷 Scan | Take or upload a photo and Bedrock identifies it. You get the common and scientific names, family, confidence, the features that support the ID, care needs, native range, toxicity, lookalikes, and a biology fact linked to a field guide topic. |
+| 📚 Herbarium | Every species you have found, with photos, dates and optional location. Search, filter by plant type, rank up from *Seed collector* to *Master botanist*. |
+| 🎮 Games | Five mini-games (below) that pay sun. |
+| 🧪 Lab | A standalone prototype of the Unity design, at [`/lab/index.html`](https://d2pxu1hyg5qt5r.cloudfront.net/lab/index.html). See below. |
+
+---
+
+## How points work
+
+| Action | Sun ☀ | Plantus ✿ |
+|---|---|---|
+| Play a mini-game | ~55–100 per competent run | — |
+| Correct post-game quiz | +15 | — |
+| Scan a **new species** | +30 | +4 common / +8 uncommon / +15 rare |
+| Scan a species you have seen | +8 | — |
+| Daily care (every open bed healthy) | +10, +2 per streak day (cap +20) | +6 every 7th day |
+| Grow a plant one stage | spends 30–600 | +5 to +48 |
+| Open a new bed | — | spends 20–130 |
+
+Scans and growth also unlock **field guide** entries, so the real-world finds and the
+game teach the same 16 topics.
+
+---
+
+## Architecture
+
+```
+ browser ──► CloudFront ──► S3 (site, private)
+    │
+    ├──► Cognito user pool          sign up / sign in (email + password)
+    │
+    └──► API Gateway (HTTP, JWT) ──► Lambda  backend/src/handler.mjs
+                                       ├─► Bedrock Converse   photo → synopsis JSON
+                                       ├─► DynamoDB           saves, finds, species tally, daily quota
+                                       └─► S3 (photos, private, served by presigned URL)
+```
+
+Everything is one CloudFormation stack, `plantus` (`backend/template.yaml`), in the
+**personal AWS account 856132197839** (`insightac` CLI profile), region `us-east-1`.
+
+| Route | |
+|---|---|
+| `GET /health` | public |
+| `GET/PUT /save` | the player's garden save, synced across devices |
+| `POST /identify` | `{ image: dataURL, lat?, lng? }` → synopsis, archived as a find |
+| `GET /finds` | the herbarium, newest first, with presigned photo URLs |
+| `DELETE /finds/{id}` | remove a find and its photo |
+
+Each player gets **25 scans per UTC day** (`DailyScanLimit`). A failed or "not a plant"
+scan does not count. Nova Pro costs well under a cent per scan.
+
+### Plant identification model
+
+The model is the `ModelId` stack parameter. It defaults to **Amazon Nova Pro**
+(`us.amazon.nova-pro-v1:0`), because that works in this account today. To switch to Claude:
+
+1. Bedrock console → *Model catalog* → any Anthropic model → submit the one-time
+   Anthropic use-case form. Only the account owner can do this.
+2. `MODEL_ID=us.anthropic.claude-sonnet-4-5-20250929-v1:0 ./deploy/deploy.sh`
+
+All model output is parsed and coerced into a fixed shape (`normalise()` in the
+handler) before it reaches the browser.
 
 ---
 
 ## Run it locally
 
 ```bash
-./serve.sh          # http://localhost:8080
-./serve.sh 3000     # or pick a port
+cd backend && npm install          # once: AWS SDK for the local server
+npm run dev                        # http://localhost:8080
 ```
 
-ES modules require HTTP — opening `index.html` from the filesystem will not work.
+The dev server serves the site and runs the **real** Lambda handler in-process,
+against the deployed table, photo bucket and Bedrock. Cognito is stubbed, so any email
+and password signs in. Stubbed users get a `local-` id and never mix with real players.
+
+For the games alone, with no backend, `./serve.sh` still works. The Scan and Herbarium
+tabs then say they need the cloud.
+
+## Deploy
+
+```bash
+./deploy/deploy.sh          # stack + site
+./deploy/deploy.sh site     # site files only, ~20 s
+```
+
+The script pins the `insightac` profile, unsets any ambient `AWS_*` keys, and **refuses
+to run unless the account is 856132197839**. That way the work account can never be
+deployed to by accident. It writes `cloud-config.json` (API URL, Cognito ids) and
+invalidates CloudFront.
+
+## PlantUs Lab (Unity prototype)
+
+**Open:** https://d2pxu1hyg5qt5r.cloudfront.net/lab/index.html (or `/lab/index.html` on the dev server)
+
+The Unity C# prototype in `unity/` is brought to the web as a self-contained page with its
+own save (`plantus.lab.v1`). It does not touch the main garden or need an account.
+
+- **Growing table:** a table of the plants you are growing, one row per pot, showing
+  stage, growth %, water, health, status and a countdown to the next stage. Pots drain
+  every minute, faster for high-speed plants. A dry plant stops growing and then loses
+  health. Each stage pays XP, and a plant in bloom can be cut for leaves.
+- **Seed vault:** all 21 plants from `plantDatabase.cs`, with every stat, trait, attack and
+  aesthetic. Unlocking follows `PlantUnlockSystem.cs` exactly: tier level gates
+  (1/2/5/9/14/20) and leaf costs (0/50/120/250/500/1000).
+- **Arena:** a Juvenile or older plant fights a wild challenger. Every hit is
+  `PlantCombatLogic.ResolveAttack`, ported line for line: dodge cap, base damage,
+  element wheel, crits and trait bonuses. Lab additions are HP ×4 so fights last a few
+  rounds, stats scaled by growth stage, and small real effects for Poison, Root/Bind and
+  Healer, which the C# only names.
+- **Tester tools:** skip time ahead, add leaves or levels, reset.
+
+`lab/plants.js` is generated from the C#, so edit the C# and then run:
+
+```bash
+node tools/unity-to-js.mjs
+```
+
+CI fails if the two drift apart. `Sessionmanager.cs` from the prototype is deliberately
+not in the repo, because it contained a hardcoded login.
 
 ## Test it
 
 ```bash
-node test/smoke.mjs      # runs every game headlessly with random input, checks nothing throws
-node test/balance.mjs    # drives every game with a competent bot, reports score/payout spread
+node test/smoke.mjs                 # runs every game headlessly with random input, checks nothing throws
+node test/balance.mjs               # drives every game with a competent bot, reports score/payout spread
+node test/lab.test.mjs              # Lab: unlock rules, growth, combat math vs the C#
+cd backend && npm test              # API: model-output parsing, normalisation, auth guard
 ```
 
 `balance.mjs` is the one that matters when tuning. It exists because a game can be
@@ -112,51 +227,9 @@ Learning is on the reward path rather than bolted on:
 
 ---
 
-## Deploy to AWS
-
-### Option A — CloudFront in front of a private bucket (recommended)
-
-```bash
-aws cloudformation deploy \
-  --template-file deploy/infrastructure.yaml \
-  --stack-name plantus-garden \
-  --parameter-overrides BucketName=your-unique-bucket-name
-
-aws cloudformation describe-stacks --stack-name plantus-garden \
-  --query 'Stacks[0].Outputs' --output table
-```
-
-Then push the files, passing the distribution id so the cache is invalidated:
-
-```bash
-chmod +x deploy/deploy-s3.sh
-./deploy/deploy-s3.sh your-unique-bucket-name E1234EXAMPLE
-```
-
-The bucket stays private; CloudFront reads it through an Origin Access Control, and
-HTTP is redirected to HTTPS.
-
-### Option B — plain S3 website hosting
-
-```bash
-./deploy/deploy-s3.sh your-unique-bucket-name
-aws s3 website s3://your-unique-bucket-name --index-document index.html
-```
-
-You will need a public-read bucket policy, and you get no HTTPS. Fine for a quick
-look, not for anything real.
-
-### Cache behaviour
-
-`index.html` goes up as `no-cache, must-revalidate`; CSS and JS get a 300 second TTL.
-There is no content hashing in the filenames, so **pass the distribution id on every
-deploy** or clients will hold stale modules for five minutes.
-
----
-
 ## Continuous integration
 
-`.github/workflows/ci.yml` runs both harnesses on every push and pull request, and
+`.github/workflows/ci.yml` runs the API unit tests and both game harnesses on every push and pull request, and
 uploads the balance report as an artifact so you can see the difficulty spread of a
 change without running it locally.
 
@@ -180,22 +253,30 @@ deploy job is skipped, so a fresh clone never tries to deploy and fail.
 ```
 index.html               app shell — hub, play view, overlay sheets
 css/style.css            the whole visual identity
-js/main.js               hub, economy loop, run launcher, results, quiz
+js/main.js               hub, tabs, care UI, economy loop, run launcher, results, quiz
+js/views/field.js        scan, herbarium, account sheets
+js/core/cloud.js         Cognito auth, API client, cross-device save sync
 js/core/engine.js        canvas scaling, input, loop, particles, draw helpers
-js/core/state.js         save file, tokens, growth rules
+js/core/state.js         save file, tokens, growth rules, soil moisture, find rewards
 js/core/plantart.js      procedural plant renderer, 6 stages × 5 plant forms
 js/data/config.js        stages, species, hazards, power-ups, payout rates
 js/data/biology.js       field guide entries and quiz bank
 js/games/*.js            one file per mini-game
 test/smoke.mjs           crash harness
 test/balance.mjs         difficulty and economy harness
-deploy/                  S3 deploy script and CloudFormation stack
+backend/template.yaml    the whole AWS stack (site, Cognito, API, Lambda, DynamoDB, S3)
+backend/src/handler.mjs  the API
+backend/dev/server.mjs   local dev server (real handler, stubbed Cognito)
+deploy/deploy.sh         account-pinned deploy of stack + site
+lab/                     PlantUs Lab: sim.js (rules), combat.js (C# port), art.js, lab.js (UI)
+unity/                   the original Unity C# prototype (source of lab/plants.js)
+tools/unity-to-js.mjs    C# -> lab/plants.js converter
 .github/workflows/       test and deploy pipelines
 ```
 
-Save data lives in `localStorage` under `plantus.save.v1`. There is no backend, so a
-player's garden is per-browser — if you want cross-device saves later, `js/core/state.js`
-is the only file that needs to change.
+Save data lives in `localStorage` under `plantus.save.v1`, and is pushed to the API
+1.5 s after any change while signed in. On sign-in, if this device last synced the same
+account, the newer save wins. Otherwise the save that has progressed further wins.
 
 ## Controls
 
@@ -208,6 +289,15 @@ is the only file that needs to change.
 | Plant Survivors | WASD, 1/2/3 to pick upgrades | drag to move, tap a card |
 
 ## Known limits
+
+- The 3D garden needs `vendor/three.core.js`, which three.module.js imports but which
+  was never committed, so the hub always falls back to the 2D garden. Add the file
+  from the same three.js release to turn 3D back on. The wilt and waterlogging visuals
+  are already wired into `garden3d.js`.
+- Cognito sends verification emails from its built-in sender, which allows about 50
+  emails a day. Switch the user pool to SES before any real launch.
+- `deploy/deploy-s3.sh` and `.github/workflows/deploy.yml` are the original site-only
+  deploy path. `deploy/deploy.sh` replaces them for the full stack.
 
 - Fonts load from Google Fonts. If you need a fully self-hosted deploy, download
   Baloo 2 and Karla into `assets/` and swap the `<link>` in `index.html`.

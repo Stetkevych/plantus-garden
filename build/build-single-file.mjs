@@ -37,7 +37,24 @@ const S = {
   get state() { return state; },
   save, reset, addSun, addPlantus, unlockFact, growthCost, canGrow, grow,
   plotUnlockCost, unlockPlot, recordRun, recordQuiz, onChange,
+  replaceState, progressOf, settle, tick, zone, hoursUntilThirsty, water,
+  careStreak, caredToday, recordFind,
 };`;
+
+// cloud.js and field.js are namespaces too. With no cloud-config.json next to
+// a file:// page, cloud.init() resolves offline and the scan tabs say so.
+const wrapNs = (p, names) => `/* ===== ${p} ===== */
+const ${names[0]} = (() => {
+${strip(read(p))}
+return { ${names.slice(1).join(', ')} };
+})();`;
+
+const CLOUD = wrapNs('js/core/cloud.js', ['C',
+  'onAuth', 'onSync', 'isConfigured', 'user', 'getSyncStatus', 'init', 'signUp', 'confirmSignUp',
+  'resendCode', 'forgotPassword', 'confirmForgotPassword', 'signIn', 'signOut', 'api', 'identify',
+  'listFinds', 'deleteFind']);
+const FIELD = wrapNs('js/views/field.js', ['FIELD', 'initField', 'showScan', 'showHerbarium']) +
+  '\nconst { initField, showScan, showHerbarium } = FIELD;';
 
 const GAMES = [
   ['js/games/vine-garden.js', 'createVineGarden'],
@@ -71,7 +88,7 @@ const out = `<!DOCTYPE html>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
 <meta name="theme-color" content="#12211A" />
-<title>Plantus Garden</title>
+<title>PlantUs</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Karla:wght@400;500;700&display=swap" rel="stylesheet" />
@@ -85,6 +102,8 @@ ${body}
 "use strict";
 ${CORE}
 ${STATE_SHIM}
+${CLOUD}
+${FIELD}
 ${GAMES}
 ${MAIN}
 </script>

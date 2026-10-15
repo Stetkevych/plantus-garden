@@ -2,9 +2,11 @@
 
 import { setupCanvas, Input, runLoop, VW, VH, rr, circle, text } from './core/engine.js';
 import { drawPlant } from './core/plantart.js';
-import { STAGES, MAX_STAGE, SPECIES, GAMES, PALETTE, PLOT_UNLOCK_COST } from './data/config.js';
+import { STAGES, MAX_STAGE, SPECIES, GAMES, PALETTE, PLOT_UNLOCK_COST, CARE } from './data/config.js';
 import { FACTS, pickQuiz } from './data/biology.js';
 import * as S from './core/state.js';
+import * as C from './core/cloud.js';
+import { initField, showScan, showHerbarium } from './views/field.js';
 
 import { createVineGarden } from './games/vine-garden.js';
 import { createCloudBarrage } from './games/cloud-barrage.js';
@@ -21,9 +23,11 @@ const FACTORIES = {
 };
 const GLYPH = { vine: '🌿', clouds: '☁', bee: '🐝', seeds: '🌰', survivors: '🛡' };
 
-const BUILD = 'b4';
+const BUILD = 'b5';
 const $ = (id) => document.getElementById(id);
 const hub = $('hub'), play = $('play'), overlay = $('overlay'), sheet = $('sheet');
+const VIEWS = { hub, scan: $('scan'), herbarium: $('herbarium') };
+let tab = 'hub';
 
 let selected = null;
 let stopRun = null;
@@ -137,9 +141,31 @@ function drawGarden(now) {
       text(gctx, `${PLOT_UNLOCK_COST[i]} plantus`, x, base - 34, { size: 15, color: PALETTE.petal, align: 'center' });
       text(gctx, 'to open this bed', x, base - 16, { size: 11, color: 'rgba(234,242,226,0.45)', align: 'center', font: 'Karla, sans-serif', weight: 600 });
     } else {
-      gctx.fillStyle = 'rgba(0,0,0,0.22)';
-      gctx.beginPath(); gctx.ellipse(x, base + 6, 46, 10, 0, 0, Math.PI * 2); gctx.fill();
+      const z = S.zone(i);
+      gctx.fillStyle = z === 'soggy' ? 'rgba(99,199,240,0.32)' : 'rgba(0,0,0,0.22)';
+      gctx.beginPath(); gctx.ellipse(x, base + 6, z === 'soggy' ? 62 : 46, z === 'soggy' ? 13 : 10, 0, 0, Math.PI * 2); gctx.fill();
+      gctx.save();
+      if (z === 'thirsty') {
+        // wilting: the plant loses turgor, sags and fades
+        gctx.translate(x, base);
+        gctx.transform(1, 0, -0.18, 0.86, 0, 0);
+        gctx.translate(-x, -base);
+        gctx.filter = 'saturate(0.35) brightness(0.85) sepia(0.35)';
+      } else if (z === 'soggy') {
+        gctx.filter = 'saturate(0.6) hue-rotate(-18deg)';
+      }
       drawPlant(gctx, x, base, 214, plot.species, plot.stage, gt + i);
+      gctx.restore();
+
+      // moisture gauge
+      const gw = 104, gy = GH - 52;
+      gctx.fillStyle = 'rgba(18,33,26,0.72)';
+      rr(gctx, x - gw / 2, gy, gw, 7, 4); gctx.fill();
+      gctx.fillStyle = z === 'healthy' ? PALETTE.rain : z === 'thirsty' ? PALETTE.danger : PALETTE.storm;
+      rr(gctx, x - gw / 2, gy, Math.max(4, (gw * plot.water) / 100), 7, 4); gctx.fill();
+      if (z !== 'healthy') {
+        text(gctx, z === 'thirsty' ? '💧 thirsty' : '≈ waterlogged', x, gy - 10, { size: 12, color: z === 'thirsty' ? '#FF9F8F' : PALETTE.rain, align: 'center', font: 'Karla, sans-serif', weight: 700 });
+      }
 
       if (plot.stage === MAX_STAGE) {
         for (let k = 0; k < 3; k++) {
@@ -208,6 +234,7 @@ function renderPlot() {
     ? `This bed is waiting. Plantus tokens are minted by growing what you already have — bring ${PLOT_UNLOCK_COST[selected]} back here and the ${sp.name.toLowerCase()} goes in.`
     : STAGES[plot.stage].caption;
   $('plotTrait').textContent = locked ? '' : sp.trait;
+  renderMoisture(locked);
 
   const btn = $('growBtn');
   if (locked) {
@@ -223,9 +250,64 @@ function renderPlot() {
     btn.onclick = null;
   } else {
     const c = S.growthCost(selected);
-    btn.textContent = `Grow to ${STAGES[plot.stage + 1].name.toLowerCase()} — ${c} sun`;
-    btn.disabled = S.state.sun < c;
+    const z = S.zone(selected);
+    btn.textContent = z === 'thirsty' ? 'Too dry to grow — water first'
+      : z === 'soggy' ? 'Roots are drowning — let it dry'
+      : `Grow to ${STAGES[plot.stage + 1].name.toLowerCase()} — ${c} sun`;
+    btn.disabled = z !== 'healthy' || S.state.sun < c;
     btn.onclick = () => doGrow(selected);
+  }
+}
+
+function renderMoisture(locked) {
+  const box = $('moisture'), wbtn = $('waterBtn');
+  box.hidden = locked; wbtn.hidden = locked;
+  if (locked) return;
+  const plot = S.state.plots[selected];
+  const sp = SPECIES[plot.species];
+  const z = S.zone(selected);
+  const w = Math.round(plot.water);
+  $('moistureVal').textContent = `${w}%`;
+  $('moistureFill').style.width = `${w}%`;
+  $('moistureFill').dataset.zone = z;
+  $('moistureBand').style.left = `${sp.thirsty}%`;
+  $('moistureBand').style.width = `${sp.soggy - sp.thirsty}%`;
+  const rate = CARE.drainPerHour(plot.species);
+  const h = S.hoursUntilThirsty(selected);
+  $('moistureNote').textContent =
+    z === 'thirsty' ? `Wilting. Without water the cells lose turgor pressure and the stems sag. This plant likes ${sp.thirsty}–${sp.soggy}%.`
+    : z === 'soggy' ? `Waterlogged. Roots need oxygen from air pockets in the soil, and these are full of water. It drains about ${rate.toFixed(1)}% an hour.`
+    : `Healthy. Dries about ${rate.toFixed(1)}% an hour, so it needs water in ${h < 1 ? 'under an hour' : `about ${Math.round(h)} hours`}.`;
+  const after = plot.water + CARE.pour;
+  wbtn.textContent = after > sp.soggy && z !== 'thirsty' ? 'Water (will overwater)' : 'Water 💧';
+  wbtn.onclick = () => doWater(selected);
+}
+
+function doWater(i) {
+  const res = S.water(i);
+  if (!res) return;
+  renderPlot();
+  const sp = SPECIES[S.state.plots[i].species];
+  if (res.bonus) {
+    bump('sunCount');
+    if (res.bonus.plantus) bump('plantusCount');
+    showSheet(`
+      <h2>Garden cared for</h2>
+      <p class="reason">Every open bed is in its healthy moisture band today.</p>
+      <div class="score-row">
+        <span class="big" style="color:var(--rain)">🔥 ${res.bonus.streak}</span>
+        <span class="earn">+${res.bonus.sun} sun</span>
+        ${res.bonus.plantus ? `<span class="earn" style="background:rgba(255,126,168,.16);color:var(--petal)">+${res.bonus.plantus} plantus</span>` : ''}
+      </div>
+      <div class="lesson"><strong>Why it matters</strong>${FACTS.transpiration.body}</div>
+      <p class="fine">Come back tomorrow and keep every bed healthy to grow the streak. Every 7th day pays plantus.</p>
+      <div class="sheet-actions"><button class="btn btn--full" data-close>Back to the garden</button></div>`);
+  } else if (res.after === 'soggy' && res.before !== 'soggy') {
+    toast(`Overwatered. The ${sp.name.toLowerCase()} roots cannot breathe until it drains.`);
+  } else if (res.before === 'thirsty' && res.after === 'healthy') {
+    toast(`The ${sp.name.toLowerCase()} perks up as water refills its cells.`);
+  } else if (res.after === 'thirsty') {
+    toast('Still thirsty. Give it another can.');
   }
 }
 
@@ -271,7 +353,10 @@ function renderWallet() {
     .map((p, i) => ({ i, p, c: S.growthCost(i) }))
     .filter((o) => o.p.unlocked && o.c !== null)
     .sort((a, b) => a.c - b.c)[0];
-  $('bedHint').textContent = next
+  const parched = S.state.plots.findIndex((p, i) => p.unlocked && S.zone(i) !== 'healthy');
+  $('bedHint').textContent = parched >= 0
+    ? `The ${SPECIES[S.state.plots[parched].species].name.toLowerCase()} is ${S.zone(parched) === 'thirsty' ? 'wilting — tap it and water it' : 'waterlogged — let it drain before growing'}`
+    : next
     ? (S.state.sun >= next.c
         ? `You can afford to grow the ${SPECIES[next.p.species].name.toLowerCase()} now — tap its plot`
         : `Tap a plot to tend it · cheapest growth costs ${next.c} sun, you have ${S.state.sun}`)
@@ -279,7 +364,18 @@ function renderWallet() {
 
   const t = S.state.totals;
   $('statLine').textContent =
-    `${t.sunEarned} sun earned all-time · ${t.blooms} full blooms · quiz ${t.quizRight}/${t.quizAsked}`;
+    `${t.sunEarned} sun earned all-time · ${t.blooms} full blooms · ${t.finds} plants found · quiz ${t.quizRight}/${t.quizAsked}`;
+
+  const open = S.state.plots.map((_, i) => i).filter((i) => S.state.plots[i].unlocked);
+  const thirsty = open.filter((i) => S.zone(i) === 'thirsty').length;
+  const soggy = open.filter((i) => S.zone(i) === 'soggy').length;
+  const streak = S.careStreak();
+  const parts = [];
+  if (thirsty) parts.push(`<span class="warn">💧 ${thirsty} thirsty</span>`);
+  if (soggy) parts.push(`<span class="warn">≈ ${soggy} waterlogged</span>`);
+  if (!thirsty && !soggy) parts.push('<span class="ok">All beds healthy</span>');
+  parts.push(S.caredToday() ? `🔥 ${streak}-day care streak, done for today` : streak ? `🔥 ${streak}-day streak, water today to keep it` : 'Water every bed into its healthy band for a daily bonus');
+  $('careLine').innerHTML = parts.join(' · ');
 }
 
 function renderFacts() {
@@ -295,7 +391,7 @@ function renderFacts() {
     el.className = `fact${has ? '' : ' locked'}`;
     el.innerHTML = has
       ? `<span class="tag">${f.tag}</span><h4>${f.title}</h4><p>${f.body}</p>`
-      : `<span class="tag">${f.tag}</span><h4>Not collected</h4><p>Keep playing and growing to unlock this entry.</p>`;
+      : `<span class="tag">${f.tag}</span><h4>Not collected</h4><p>Unlock it by playing, growing, or scanning a real plant.</p>`;
     grid.appendChild(el);
   });
 }
@@ -337,7 +433,8 @@ function startRun(id) {
   const meta = GAMES.find((g) => g.id === id);
   $('playTitle').textContent = meta.title;
   $('playHint').textContent = meta.hint;
-  hub.hidden = true;
+  Object.values(VIEWS).forEach((el) => (el.hidden = true));
+  tab = 'hub';
   play.hidden = false;
   document.body.classList.add('playing');
   window.scrollTo(0, 0);
@@ -359,12 +456,39 @@ function endRunCleanup() {
   if (stopRun) { stopRun(); stopRun = null; }
   if (runInput) { runInput.destroy(); runInput = null; }
   play.hidden = true;
-  hub.hidden = false;
+  Object.entries(VIEWS).forEach(([k, el]) => (el.hidden = k !== tab));
   document.body.classList.remove('playing');
 }
 
 $('quitBtn').onclick = () => endRunCleanup();
-$('homeBtn').onclick = () => { if (!play.hidden) endRunCleanup(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+$('homeBtn').onclick = () => { if (!play.hidden) endRunCleanup(); goTab('hub'); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+
+/* =========================================================
+   Tabs: garden, scan, herbarium
+   ========================================================= */
+function goTab(name) {
+  if (!VIEWS[name]) return;
+  if (!play.hidden) endRunCleanup();
+  tab = name;
+  Object.entries(VIEWS).forEach(([k, el]) => (el.hidden = k !== name));
+  document.querySelectorAll('.tab').forEach((b) => b.classList.toggle('is-on', b.dataset.tab === name));
+  if (name === 'scan') showScan();
+  if (name === 'herbarium') showHerbarium();
+  const want = name === 'hub' ? '' : `#${name}`;
+  if (location.hash !== want) history.replaceState(null, '', location.pathname + want);
+  window.scrollTo(0, 0);
+}
+document.querySelectorAll('.tab').forEach((b) => (b.onclick = () => goTab(b.dataset.tab)));
+
+let toastTimer = null;
+function toast(msg) {
+  const el = $('toast');
+  el.textContent = msg;
+  el.hidden = false;
+  requestAnimationFrame(() => el.classList.add('is-on'));
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.classList.remove('is-on'); setTimeout(() => (el.hidden = true), 250); }, 4200);
+}
 
 function finishRun(id, res) {
   const rec = S.recordRun(id, res.score, res.sun);
@@ -475,7 +599,7 @@ function dismissBoot() {
   setTimeout(() => { boot.hidden = true; boot.style.display = 'none'; }, 250);
   document.querySelector('.games')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
-document.querySelector('.boot-inner p').textContent = `Five games. One garden. \u00b7 ${BUILD}`;
+document.querySelector('.boot-inner p').textContent = `Scan real plants. Grow a garden. Play for it. \u00b7 ${BUILD}`;
 $('bootPlay').onclick = () => { goFullscreen(); dismissBoot(); };
 $('bootWindowed').onclick = () => dismissBoot();
 
@@ -536,3 +660,19 @@ window.addEventListener('resize', () => {
   const obs = new MutationObserver(() => g3.setAutoRotate(panel.hidden));
   obs.observe(panel, { attributes: true, attributeFilter: ['hidden'] });
 })();
+
+
+/* =========================================================
+   Living garden + cloud
+   ========================================================= */
+
+// Soil keeps drying while the page is open; catch up once a minute and
+// whenever the tab comes back into view.
+setInterval(S.tick, 60000);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') S.tick(); });
+
+initField({ showSheet, closeSheet, toast, bump, goTab });
+C.init().then(() => {
+  const want = location.hash.slice(1);
+  if (VIEWS[want] && want !== 'hub') { boot.hidden = true; boot.style.display = 'none'; goTab(want); }
+});

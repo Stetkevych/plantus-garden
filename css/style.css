@@ -337,3 +337,222 @@ body.playing #gameCanvas{
   position:absolute;right:12px;bottom:52px;z-index:3;
   background:rgba(18,33,26,.82);backdrop-filter:blur(8px);
 }
+
+/* =====================================================================
+   PlantUs: tabs, care, scan, herbarium, accounts
+   ===================================================================== */
+
+/* ---------- account + tabs ---------- */
+.wallet{align-items:center}
+.account-btn{
+  min-width:36px;height:36px;padding:0 14px;border-radius:999px;
+  background:transparent;border:1px solid var(--line);color:var(--paper);
+  font-family:var(--display);font-weight:700;font-size:14px;
+}
+.account-btn.is-in{padding:0;width:36px;background:var(--moss);color:var(--chloro);position:relative}
+.account-btn.is-in::after{
+  content:"";position:absolute;right:-1px;bottom:-1px;width:10px;height:10px;border-radius:50%;
+  background:var(--chloro);border:2px solid var(--ink);
+}
+.account-btn[data-sync="syncing"]::after{background:var(--pollen)}
+.account-btn[data-sync="error"]::after{background:var(--danger)}
+
+.tabs{
+  position:sticky;top:61px;z-index:39;
+  display:flex;justify-content:center;gap:6px;
+  padding:8px clamp(14px,4vw,32px);
+  background:rgba(18,33,26,.8);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);
+}
+.tab{
+  display:flex;align-items:center;gap:7px;
+  padding:8px 18px;border-radius:999px;border:1px solid transparent;
+  background:none;color:var(--muted);
+  font-family:var(--display);font-weight:700;font-size:15px;
+}
+.tab:hover{color:var(--paper)}
+.tab.is-on{background:var(--ink-3);border-color:var(--line);color:var(--chloro)}
+body.playing .tabs{display:none}
+
+@media (max-width:720px){
+  .tabs{
+    position:fixed;top:auto;bottom:0;left:0;right:0;
+    justify-content:space-around;gap:0;
+    padding:6px 6px calc(6px + env(safe-area-inset-bottom));
+    border-top:1px solid var(--line);border-bottom:0;
+  }
+  .tab{flex-direction:column;gap:2px;font-size:12px;padding:6px 10px;flex:1;justify-content:center}
+  .tab span{font-size:20px}
+  .tab.is-on{background:none;border-color:transparent}
+  .view{padding-bottom:110px}
+}
+
+/* ---------- care ---------- */
+.care-line{margin:10px 0 0;font-size:13.5px;color:var(--muted);line-height:1.5}
+.care-line .warn{color:#FF9F8F;font-weight:700}
+.care-line .ok{color:var(--chloro);font-weight:700}
+.moisture{margin:0 0 16px;padding:12px 14px;border-radius:12px;background:var(--ink-3);border:1px solid var(--line)}
+.moisture-head{display:flex;justify-content:space-between;font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--muted)}
+.moisture-head b{font-family:var(--display);font-size:15px;letter-spacing:0;color:var(--rain)}
+.moisture-bar{position:relative;height:12px;margin:8px 0;border-radius:6px;background:rgba(0,0,0,.35);overflow:hidden}
+.moisture-bar .band{position:absolute;top:0;bottom:0;background:rgba(139,224,106,.18);border-left:1px dashed rgba(139,224,106,.6);border-right:1px dashed rgba(139,224,106,.6)}
+.moisture-bar .fill{position:absolute;left:0;top:3px;bottom:3px;border-radius:4px;background:var(--rain);transition:width .4s ease}
+.moisture-bar .fill[data-zone="thirsty"]{background:var(--danger)}
+.moisture-bar .fill[data-zone="soggy"]{background:#6C5CA8}
+.moisture-note{margin:0;font-size:13px;line-height:1.5;color:var(--muted)}
+.btn--water{background:linear-gradient(135deg,var(--rain),#3E9BC4);color:var(--ink)}
+
+/* ---------- toast ---------- */
+.toast{
+  position:fixed;left:50%;bottom:24px;z-index:80;
+  transform:translate(-50%,20px);opacity:0;
+  max-width:min(460px,calc(100% - 32px));
+  padding:12px 18px;border-radius:14px;
+  background:var(--moss);border:1px solid var(--line);color:var(--paper);
+  font-size:14px;line-height:1.45;box-shadow:0 14px 40px rgba(0,0,0,.45);
+  transition:opacity .22s ease,transform .22s ease;
+}
+.toast.is-on{opacity:1;transform:translate(-50%,0)}
+@media (max-width:720px){.toast{bottom:calc(84px + env(safe-area-inset-bottom))}}
+
+/* ---------- shared view chrome ---------- */
+.section-head--top{margin-top:30px}
+.view-title{font-size:clamp(24px,4.6vw,36px);letter-spacing:-.4px;max-width:20ch}
+.view-lede{margin:10px 0 0;max-width:58ch;font-size:15px;line-height:1.55;color:var(--muted)}
+.panel{padding:22px;border-radius:var(--r);background:var(--ink-2);border:1px solid var(--line);animation:rise .3s ease both}
+.panel + .panel,.panel + .reward-strip{margin-top:12px}
+.empty{text-align:center;padding:40px 22px}
+.empty h3{font-size:21px;margin:8px 0 6px}
+.empty p{margin:0 auto 18px;max-width:44ch;font-size:14px;line-height:1.55;color:var(--muted)}
+.empty-ico{font-size:40px;display:inline-block}
+.spin{animation:spin 1.2s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.fine{margin:0 0 14px;font-size:12.5px;line-height:1.5;color:var(--muted)}
+.fine.warn{color:var(--pollen)}
+
+/* ---------- scan ---------- */
+.capture{display:grid;grid-template-columns:200px 1fr;gap:24px;align-items:center}
+.capture-art{
+  aspect-ratio:1;border-radius:18px;display:grid;place-items:center;font-size:76px;
+  background:radial-gradient(circle at 50% 40%,rgba(139,224,106,.25),transparent 65%),var(--ink-3);
+  border:2px dashed rgba(139,224,106,.35);
+}
+.capture-copy h3{font-size:21px;margin-bottom:6px}
+.capture-copy p{margin:0 0 16px;font-size:14px;line-height:1.55;color:var(--muted)}
+.capture-actions{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+.capture-actions .btn--xl{padding:15px 26px;font-size:18px}
+.check{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer}
+.check input{accent-color:var(--chloro);width:16px;height:16px}
+.reward-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.reward-strip div{padding:12px;border-radius:12px;background:var(--ink-2);border:1px solid var(--line);text-align:center}
+.reward-strip b{display:block;font-family:var(--display);font-size:18px;color:var(--pollen)}
+.reward-strip div:nth-child(2) b{color:var(--petal)}
+.reward-strip span{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+
+.scanning{text-align:center}
+.scan-photo{position:relative;max-width:420px;margin:0 auto 14px;border-radius:16px;overflow:hidden}
+.scan-photo img{display:block;width:100%;height:auto}
+.scan-beam{
+  position:absolute;left:0;right:0;height:30%;top:-30%;
+  background:linear-gradient(180deg,transparent,rgba(139,224,106,.45),transparent);
+  animation:beam 1.6s ease-in-out infinite;
+}
+@keyframes beam{to{top:100%}}
+.scan-status{margin:0;font-family:var(--display);font-size:16px;color:var(--chloro)}
+
+.result-reward{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:18px}
+.new-tag{padding:6px 12px;border-radius:999px;background:var(--pollen);color:var(--ink);font-family:var(--display);font-weight:800;font-size:15px}
+.seen-tag{font-size:13px;color:var(--muted);font-weight:700}
+.earn{padding:5px 11px;border-radius:999px;background:rgba(255,201,60,.16);color:var(--pollen);font-family:var(--display);font-weight:700;font-size:14px}
+.earn--plantus{background:rgba(255,126,168,.16);color:var(--petal)}
+.result-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:18px}
+.result-actions .link-btn{margin-left:auto}
+
+/* ---------- synopsis (shared by scan result + herbarium detail) ---------- */
+.syn{display:grid;grid-template-columns:minmax(0,260px) 1fr;gap:20px;margin-bottom:16px}
+.syn-photo{position:relative;border-radius:14px;overflow:hidden;background:var(--ink-3);aspect-ratio:1}
+.syn-photo img{width:100%;height:100%;object-fit:cover;display:block}
+.syn-main h2{font-size:clamp(24px,4vw,30px)}
+.syn-main .eyebrow{text-transform:capitalize}
+.syn-summary{margin:12px 0 0;font-size:14.5px;line-height:1.6}
+.badge{
+  position:absolute;top:10px;left:10px;padding:3px 9px;border-radius:999px;
+  font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  background:rgba(18,33,26,.82);color:var(--paper);
+}
+.badge--uncommon{color:var(--rain)}
+.badge--rare{color:var(--pollen);box-shadow:0 0 0 1px var(--pollen)}
+.confidence{position:relative;height:22px;margin-top:12px;border-radius:11px;background:var(--ink-3);overflow:hidden}
+.confidence span{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--chloro-dk),var(--chloro));opacity:.5}
+.confidence b{position:relative;display:block;padding:0 10px;line-height:22px;font-size:12px}
+.syn-block{margin:0 0 16px}
+.syn-block h4,.care-grid span{
+  margin:0 0 8px;font-family:var(--display);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--chloro);
+}
+.ticks{margin:0;padding:0;list-style:none;display:grid;gap:6px}
+.ticks li{position:relative;padding-left:22px;font-size:14px;line-height:1.5}
+.ticks li::before{content:"✓";position:absolute;left:0;color:var(--chloro);font-weight:700}
+.care-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.care-grid div{padding:12px;border-radius:12px;background:var(--ink-3);border:1px solid var(--line)}
+.care-grid span{display:block;margin-bottom:4px}
+.care-grid p{margin:0;font-size:13px;line-height:1.45}
+.stat-list b.txt{font-family:var(--body);font-weight:600;color:var(--paper);text-align:right;max-width:60%}
+
+/* ---------- herbarium ---------- */
+.rank{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:12px}
+.rank-name{padding:5px 12px;border-radius:999px;background:var(--moss);color:var(--chloro);font-family:var(--display);font-weight:700;font-size:14px}
+.rank-bar{width:140px;height:8px;border-radius:4px;background:var(--ink-3);overflow:hidden}
+.rank-bar span{display:block;height:100%;background:var(--chloro)}
+.rank-next{font-size:13px;color:var(--muted)}
+.herb-tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px}
+.herb-tools input{
+  flex:1 1 220px;padding:11px 14px;border-radius:12px;border:1px solid var(--line);
+  background:var(--ink-2);color:var(--paper);font:inherit;font-size:15px;
+}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:none;color:var(--muted);font-size:13px;font-weight:700;text-transform:capitalize}
+.chip.is-on{background:var(--moss);color:var(--chloro);border-color:var(--chloro)}
+.herb-grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}
+.herb-card{
+  display:flex;flex-direction:column;text-align:left;padding:0;overflow:hidden;
+  border-radius:var(--r);border:1px solid var(--line);background:var(--ink-2);color:var(--paper);
+  transition:transform .15s ease,border-color .15s ease;
+}
+.herb-card:hover{transform:translateY(-3px);border-color:var(--chloro)}
+.herb-photo{position:relative;display:block;aspect-ratio:1;background:var(--ink-3)}
+.herb-photo img{width:100%;height:100%;object-fit:cover;display:block}
+.herb-meta{display:grid;gap:2px;padding:10px 12px 12px}
+.herb-meta b{font-family:var(--display);font-size:16px;line-height:1.2}
+.herb-meta i{font-size:12px;color:var(--muted)}
+.herb-meta small{font-size:11.5px;color:var(--muted);margin-top:4px}
+.sheet:has(.sheet-wide){width:min(720px,100%)}
+.sightings{display:grid;gap:8px}
+.sighting{display:flex;gap:12px;align-items:center;padding:8px;border-radius:12px;background:var(--ink-3)}
+.sighting img,.sighting-ph{width:56px;height:56px;border-radius:8px;object-fit:cover;background:var(--moss);flex:none}
+.sighting div{display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:13px}
+.sighting a{color:var(--rain);font-weight:700;text-decoration:none}
+
+/* ---------- auth ---------- */
+.auth-form{display:grid;gap:12px;margin-bottom:10px}
+.field{display:grid;gap:6px}
+.field span{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.field input{
+  padding:12px 14px;border-radius:12px;border:1px solid var(--line);
+  background:var(--ink-3);color:var(--paper);font:inherit;font-size:16px;
+}
+.field input:focus{border-color:var(--chloro);outline:none}
+.form-msg{margin:0;min-height:1em;font-size:13px;color:#FF9F8F}
+.auth-form .fine{margin:-6px 0 0}
+.auth-links{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px;margin-bottom:12px}
+
+@media (max-width:640px){
+  .capture{grid-template-columns:1fr}
+  .capture-art{max-width:160px;margin:0 auto}
+  .capture-actions .btn{flex:1 1 100%}
+  .reward-strip{grid-template-columns:repeat(2,1fr)}
+  .syn{grid-template-columns:1fr}
+  .care-grid{grid-template-columns:1fr}
+  .result-actions .btn{flex:1 1 100%}
+  .result-actions .link-btn{margin:0 auto}
+  .herb-grid{grid-template-columns:repeat(2,1fr)}
+}

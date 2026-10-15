@@ -73,31 +73,31 @@ export const MAX_STAGE = STAGES.length - 1;
 export const SPECIES = {
   sunflower: {
     id: 'sunflower', name: 'Sunflower', latin: 'Helianthus annuus',
-    water: 5, costMul: 1, form: 'herb',
+    water: 5, costMul: 1, form: 'herb', thirsty: 25, soggy: 88,
     petal: '#FFC93C', leaf: '#8BE06A', stem: '#5FB544',
     trait: 'Heliotropic — young heads track the sun across the sky.',
   },
   cactus: {
     id: 'cactus', name: 'Barrel Cactus', latin: 'Ferocactus wislizeni',
-    water: 2, costMul: 0.8, form: 'succulent',
+    water: 2, costMul: 0.8, form: 'succulent', thirsty: 8, soggy: 70,
     petal: '#FF9F45', leaf: '#5FB544', stem: '#3D8C4E',
     trait: 'Stores water in its stem and opens its stomata only at night.',
   },
   fern: {
     id: 'fern', name: 'Lady Fern', latin: 'Athyrium filix-femina',
-    water: 6, costMul: 1.1, form: 'fern',
+    water: 6, costMul: 1.1, form: 'fern', thirsty: 30, soggy: 92,
     petal: '#8BE06A', leaf: '#6FCB52', stem: '#4A9A3C',
     trait: 'Reproduces with spores, not seeds — no flowers at all.',
   },
   rose: {
     id: 'rose', name: 'Garden Rose', latin: 'Rosa gallica',
-    water: 8, costMul: 1.3, form: 'shrub',
+    water: 8, costMul: 1.3, form: 'shrub', thirsty: 25, soggy: 88,
     petal: '#FF7EA8', leaf: '#6FCB52', stem: '#4A9A3C',
     trait: 'Thorns are prickles — outgrowths of the skin, not modified stems.',
   },
   oak: {
     id: 'oak', name: 'Oak Sapling', latin: 'Quercus robur',
-    water: 15, costMul: 1.6, form: 'tree',
+    water: 15, costMul: 1.6, form: 'tree', thirsty: 30, soggy: 94,
     petal: '#C6E86A', leaf: '#5FB544', stem: '#8A5A38',
     trait: 'A mature oak can move over 150 litres of water a day by transpiration.',
   },
@@ -152,3 +152,40 @@ export const cost = (species, stage) =>
 
 export const plantusFor = (species, stage) =>
   Math.round(STAGES[stage].plantus * SPECIES[species].costMul);
+
+// ---------------------------------------------------------------- care
+// Every open plot holds soil moisture (0-100) that drains in real time. The
+// drain rate comes from the same `water` trait Cloud Barrage teaches, so the
+// oak really does need watering several times as often as the cactus.
+// Below `thirsty` the plant wilts; above `soggy` the roots are starved of
+// oxygen. Either way it will not grow until it is back in its healthy band.
+export const CARE = {
+  start: 60,
+  pour: 25,                                       // one watering can
+  drainPerHour: (species) => 0.5 + SPECIES[species].water * 0.35,
+  dailyBonusSun: 10,
+  streakSunPerDay: 2,
+  streakSunCap: 20,
+  weeklyPlantus: 6,                               // every 7th day in a row
+};
+
+// ---------------------------------------------------------------- field finds
+// Rewards for identifying a real plant with the camera. New species are the
+// big payout; seeing one again still pays a little, so walks stay worth it.
+export const FIND_REWARD = {
+  newSpeciesSun: 30,
+  repeatSun: 8,
+  newSpeciesPlantus: { common: 4, uncommon: 8, rare: 15 },
+};
+
+// Botanist ranks, by number of distinct species in the herbarium.
+export const RANKS = [
+  { at: 0, name: 'Seed collector' },
+  { at: 3, name: 'Sprout spotter' },
+  { at: 8, name: 'Leaf reader' },
+  { at: 15, name: 'Field botanist' },
+  { at: 30, name: 'Herbarium keeper' },
+  { at: 60, name: 'Master botanist' },
+];
+export const rankFor = (n) => RANKS.filter((r) => n >= r.at).pop();
+export const nextRank = (n) => RANKS.find((r) => r.at > n) || null;
